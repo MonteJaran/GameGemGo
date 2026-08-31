@@ -4,11 +4,13 @@ A swipe feed for discovering playable game ad previews. Android-first MVP,
 built as a fast Capacitor + React + TypeScript shell — **not** a game
 engine app.
 
-Status: **Phase 1 — local_test mode**. The app is fully playable right now
-with zero external services: 3 built-in demo playables, local event
-logging, and a client-side fraud/qualification simulation. Firebase
-(Auth, Firestore, Cloud Functions) is scaffolded and ready but not wired
-up live yet — that's Phase 2, see below.
+Status: runs today in **local_test mode** with zero external services (3
+built-in demo playables, local event logging, client-side fraud/
+qualification simulation). The Phase 2 Firebase backend — Auth, Firestore
+rules, Cloud Functions for server-side qualification/fraud — is written,
+type-checked, and passing its rules test suite, but not yet deployed to
+the live project; see "Phase 2" below and `LAUNCH_CHECKLIST.md` for
+what's left before real monetization.
 
 ## Quick start (Phase 1 — no Android tooling needed)
 
@@ -86,9 +88,13 @@ public/
 firebase/
   firestore.rules, firestore.indexes.json, firebase.json
   FIREBASE_SCHEMA.md   full collection-by-collection schema doc
-  functions/            Cloud Functions skeleton (Phase 2, not deployed)
+  functions/            real Cloud Functions (qualifyEvents, fraudScoring,
+                         logRawEvent, syncPublicCreative) — written and
+                         type-checked, not yet deployed
+  scripts/              set-production-flag.mjs, a bare-bones kill switch
   seed/                 example ad_creatives / app_config documents
-  tests/                Firestore rules test skeleton
+  tests/                Firestore rules tests — 9/9 passing against the
+                         emulator (`cd firebase && npm run test:rules`)
 ```
 
 ## Performance choices (why it starts fast)
@@ -122,42 +128,38 @@ nothing to paste in, just flip `VITE_APP_ENV=staging` when you get to
 step 5. Both files are gitignored (not secrets — Firestore rules are what
 actually gate access — just kept out of the repo by default).
 
-When you're ready to actually build out the rest of Phase 2:
+The code side of Phase 2 is done — client seams (`authService.ts`,
+`firebaseCreativeReader.ts`, `eventLogger.ts`, `outboundClickGatekeeper.ts`)
+are wired for real, and the Cloud Functions
+(`qualifyEvents.ts`/`fraudScoring.ts`/`logRawEvent.ts`/`syncPublicCreative.ts`)
+have real logic, not stubs. What's left is deploying it and populating
+real data:
 
 1. Firestore: create `ad_creatives_public`, `app_config_public` (client
    readable) and everything else from `firebase/FIREBASE_SCHEMA.md`
    (server-only). `firebase/seed/*.sample.json` show example shapes.
 2. Deploy rules: `firebase deploy --only firestore:rules` (from
    `firebase/`, after `firebase init` / `firebase use gamegem-1614d`).
-3. Build the functions: `cd firebase/functions && npm install && npm run build`,
-   then `firebase deploy --only functions`. They're currently skeletons
-   with `TODO`s — see each file's doc comment for exactly what's left.
-4. Flip the switches in the code (each is a small, deliberate seam):
-   - `src/services/auth/authService.ts` — swap the local branch for
-     `signInAnonymously` (commented TODO already there).
-   - `src/services/creatives/firebaseCreativeReader.ts` — implement the
-     `ad_creatives_public` read (TODO already there); `feedService.ts`
-     already falls back to local creatives if this throws.
-   - `src/services/events/eventLogger.ts`'s `forwardToServer` — call the
-     `logRawEvent` callable instead of being a no-op.
-   - `src/services/fraud/outboundClickGatekeeper.ts` — before navigating
-     on `allow`/`allow_suspicious`, also call `evaluateOutboundClickServer`
-     and treat *that* response as authoritative for revenue-eligibility;
-     the local decision remains a fast, offline-friendly first pass.
-5. Set `VITE_APP_ENV=staging` (or `production`) and rebuild.
+3. Deploy functions: `cd firebase/functions && npm install && npm run build`,
+   then `firebase deploy --only functions` (from `firebase/`).
+4. Set `VITE_APP_ENV=staging` (or `production`) and rebuild.
+5. Before real money is involved: add Firebase App Check (see
+   `LAUNCH_CHECKLIST.md` §1) — without it, the callable functions can be
+   invoked directly by anything, not just this app.
 
 ### Testing security rules
 
 ```bash
 cd firebase
-npm install -D vitest @firebase/rules-unit-testing
-firebase emulators:exec --only firestore "npx vitest run tests"
+npm install
+npm run test:rules
 ```
 
-`firebase/tests/firestore.rules.test.ts` already covers the load-bearing
-cases (public read/no write, `events_raw` fully closed to clients, the
-`users/{uid}` field whitelist, default-deny). Extend it as the schema
-grows — never deploy a rules change without running this first.
+`firebase/tests/firestore.rules.test.ts` covers the load-bearing cases
+(public read/no write, `events_raw`/`counters`/`rate_limits` fully closed
+to clients, the `users/{uid}` field whitelist, default-deny) — **9/9
+passing** as of this build. Extend it as the schema grows — never deploy
+a rules change without running this first.
 
 ## Building for Android
 
@@ -178,11 +180,27 @@ to see it as an actual Android app:
 3. `npm run cap:sync` — builds the web app and copies it + native deps
    into `android/`.
 4. `npm run cap:open:android` — opens the project in Android Studio. Run
-   it on an emulator or a USB-connected device from there (▶ Run button).
+   it on an emulator or a USB-connected device from there (▶ Run button),
+   or from the command line: `cd android && ./gradlew assembleDebug`
+   (needs a JDK — see `android/gradle.properties`'s `org.gradle.java.home`
+   if command-line builds ever fail with a Java version error; Capacitor
+   8 requires JDK 21 for the native build specifically).
 
-`android/` and `ios/` are gitignored for now (regenerated on demand via
-step 2's command); once you start customizing native code, remove that
-line from `.gitignore` and commit the platform folder.
+`android/` is tracked in git (it carries real hand-written config now —
+release signing, R8 rules — not just Capacitor's disposable template) with
+generated/machine-specific/secret parts excluded — see `.gitignore`. A
+signed release build already works:
+
+```bash
+cd android && ./gradlew assembleRelease
+```
+
+using `android/keystore.properties` + `android/app/release.keystore.jks`
+(both gitignored, generated once for this machine — **back them up**;
+losing the keystore means you can't update the app under the same signing
+identity later, though Play App Signing enrollment mitigates this once
+you publish). `minifyEnabled`/`shrinkResources` are on for release builds
+(R8 + Capacitor-specific keep rules in `proguard-rules.pro`).
 
 ## Where a real ad SDK plugs in later
 
@@ -200,6 +218,13 @@ purpose (spec: "No live ads yet"). The seams are:
   callback, not just the two local navigation targets it drives today.
 
 Internal test traffic (`VITE_INTERNAL_TEST_USER=true`, the
-`internal_test_user` event) must stay excluded from anything
-revenue-related in that future integration — see `env.ts` and
-`qualifyEvents.ts`'s TODO.
+`internal_test_user` event) stays excluded from anything revenue-related
+already — both `qualifyEvents.ts` and `fraudScoring.ts` check
+`users/{uid}.isInternalTestUser` (server-set only) before writing anything
+to `qualified_events`.
+
+## Also see
+
+- `LAUNCH_CHECKLIST.md` — everything between here and real playable ads
+  going live: what's done, what's left, and what needs your action
+  specifically (Firebase/Play Console, legal review, a signed partner).

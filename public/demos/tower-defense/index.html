@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Last Bastion — demo</title>
+<style>
+  :root {
+    --bg: #0b0c10;
+    --path: #1c1f26;
+    --text-dim: #9aa0a6;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  #stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+  }
+  #hud {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-dim);
+    font-size: 12px;
+    pointer-events: none;
+  }
+  #hint {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    pointer-events: none;
+  }
+  #banner {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    text-align: center;
+    color: #f2f3f5;
+    font-size: 16px;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="c"></canvas>
+    <div id="hud"><span id="status">Tap open ground to place a turret</span><span>Last Bastion — demo</span></div>
+    <div id="banner"></div>
+    <div id="hint">One turret · one short wave</div>
+  </div>
+  <script>
+    // Standalone playable demo: no external assets. Posts a message to the
+    // parent app whenever the player places the turret so
+    // PlayablePreviewScreen can count interactions.
+    function notifyInteraction() {
+      try {
+        window.parent.postMessage({ type: 'swipeplayable:interaction', game: 'tower-defense' }, '*')
+      } catch (e) {}
+    }
+
+    var canvas = document.getElementById('c')
+    var ctx = canvas.getContext('2d')
+    var statusEl = document.getElementById('status')
+    var bannerEl = document.getElementById('banner')
+
+    var W = 0, H = 0
+    var waypoints = []
+    function resize() {
+      var stage = document.getElementById('stage')
+      W = canvas.width = stage.clientWidth
+      H = canvas.height = stage.clientHeight
+      waypoints = [
+        { x: 0, y: H * 0.5 },
+        { x: W * 0.35, y: H * 0.5 },
+        { x: W * 0.35, y: H * 0.22 },
+        { x: W * 0.68, y: H * 0.22 },
+        { x: W * 0.68, y: H * 0.82 },
+        { x: W, y: H * 0.82 },
+      ]
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    var TURRET_RANGE = 0
+    var turret = null // { x, y, cooldown }
+    var enemies = []
+    var beams = [] // brief visual feedback for shots
+    var waveSpawned = 0
+    var waveTotal = 6
+    var spawnTimer = 0
+    var waveActive = false
+    var waveDone = false
+    var resetTimer = 0
+
+    function distToSegment(p, a, b) {
+      var abx = b.x - a.x, aby = b.y - a.y
+      var t = ((p.x - a.x) * abx + (p.y - a.y) * aby) / (abx * abx + aby * aby || 1)
+      t = Math.max(0, Math.min(1, t))
+      var cx = a.x + abx * t, cy = a.y + aby * t
+      return Math.hypot(p.x - cx, p.y - cy)
+    }
+    function distToPath(p) {
+      var min = Infinity
+      for (var i = 0; i < waypoints.length - 1; i++) min = Math.min(min, distToSegment(p, waypoints[i], waypoints[i + 1]))
+      return min
+    }
+
+    function pointAtDistance(dist) {
+      var remaining = dist
+      for (var i = 0; i < waypoints.length - 1; i++) {
+        var a = waypoints[i], b = waypoints[i + 1]
+        var segLen = Math.hypot(b.x - a.x, b.y - a.y)
+        if (remaining <= segLen) {
+          var t = segLen === 0 ? 0 : remaining / segLen
+          return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, done: false }
+        }
+        remaining -= segLen
+      }
+      return { x: waypoints[waypoints.length - 1].x, y: waypoints[waypoints.length - 1].y, done: true }
+    }
+    function pathLength() {
+      var len = 0
+      for (var i = 0; i < waypoints.length - 1; i++) len += Math.hypot(waypoints[i + 1].x - waypoints[i].x, waypoints[i + 1].y - waypoints[i].y)
+      return len
+    }
+
+    function startWave() {
+      waveActive = true
+      waveSpawned = 0
+      spawnTimer = 0
+      enemies = []
+    }
+
+    function resetDemo() {
+      turret = null
+      enemies = []
+      beams = []
+      waveSpawned = 0
+      waveActive = false
+      waveDone = false
+      statusEl.textContent = 'Tap open ground to place a turret'
+      bannerEl.style.opacity = '0'
+    }
+    resetDemo()
+
+    canvas.addEventListener('pointerdown', function (e) {
+      if (turret) return
+      var rect = canvas.getBoundingClientRect()
+      var p = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+      if (distToPath(p) < Math.min(W, H) * 0.09) {
+        statusEl.textContent = "Can't place on the path — try open ground"
+        return
+      }
+      turret = { x: p.x, y: p.y, cooldown: 0 }
+      TURRET_RANGE = Math.min(W, H) * 0.32
+      statusEl.textContent = 'Turret placed — wave incoming'
+      notifyInteraction()
+      startWave()
+    })
+
+    var TOTAL_LEN = 0
+    var last = performance.now()
+    function step(now) {
+      var dt = Math.min(0.05, (now - last) / 1000)
+      last = now
+      TOTAL_LEN = pathLength()
+
+      if (waveActive) {
+        spawnTimer += dt
+        if (waveSpawned < waveTotal && spawnTimer > 0.7) {
+          spawnTimer = 0
+          waveSpawned++
+          enemies.push({ traveled: -waveSpawned * 40, hp: 3, maxHp: 3, alive: true })
+        }
+        for (var i = enemies.length - 1; i >= 0; i--) {
+          var en = enemies[i]
+          if (!en.alive) continue
+          en.traveled += 90 * dt
+          var pos = pointAtDistance(en.traveled)
+          en.x = pos.x
+          en.y = pos.y
+          if (pos.done) {
+            en.alive = false
+            enemies.splice(i, 1)
+          }
+        }
+
+        if (turret) {
+          turret.cooldown -= dt
+          if (turret.cooldown <= 0) {
+            var target = null,
+              bestDist = TURRET_RANGE
+            for (var j = 0; j < enemies.length; j++) {
+              var d = Math.hypot(enemies[j].x - turret.x, enemies[j].y - turret.y)
+              if (d <= bestDist) {
+                bestDist = d
+                target = enemies[j]
+              }
+            }
+            if (target) {
+              target.hp -= 1
+              beams.push({ x1: turret.x, y1: turret.y, x2: target.x, y2: target.y, life: 0.08 })
+              turret.cooldown = 0.4
+              if (target.hp <= 0) {
+                target.alive = false
+                var idx = enemies.indexOf(target)
+                if (idx >= 0) enemies.splice(idx, 1)
+              }
+            }
+          }
+        }
+
+        for (var b = beams.length - 1; b >= 0; b--) {
+          beams[b].life -= dt
+          if (beams[b].life <= 0) beams.splice(b, 1)
+        }
+
+        if (waveSpawned >= waveTotal && enemies.length === 0 && !waveDone) {
+          waveDone = true
+          waveActive = false
+          statusEl.textContent = 'Wave complete'
+          bannerEl.textContent = 'Wave complete — demo loop'
+          bannerEl.style.opacity = '1'
+          resetTimer = 2.6
+        }
+      }
+
+      if (waveDone) {
+        resetTimer -= dt
+        if (resetTimer <= 0) resetDemo()
+      }
+
+      draw()
+      requestAnimationFrame(step)
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H)
+      var sky = ctx.createLinearGradient(0, 0, 0, H)
+      sky.addColorStop(0, '#14161c')
+      sky.addColorStop(1, '#0b0c10')
+      ctx.fillStyle = sky
+      ctx.fillRect(0, 0, W, H)
+
+      ctx.strokeStyle = '#1c1f26'
+      ctx.lineWidth = Math.min(W, H) * 0.14
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      ctx.beginPath()
+      ctx.moveTo(waypoints[0].x, waypoints[0].y)
+      for (var i = 1; i < waypoints.length; i++) ctx.lineTo(waypoints[i].x, waypoints[i].y)
+      ctx.stroke()
+
+      if (turret) {
+        ctx.fillStyle = 'rgba(108,123,255,0.08)'
+        ctx.beginPath()
+        ctx.arc(turret.x, turret.y, TURRET_RANGE, 0, Math.PI * 2)
+        ctx.fill()
+
+        ctx.fillStyle = '#6c7bff'
+        ctx.beginPath()
+        ctx.arc(turret.x, turret.y, Math.min(W, H) * 0.045, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      for (var e = 0; e < enemies.length; e++) {
+        var en = enemies[e]
+        if (en.x === undefined) continue
+        ctx.fillStyle = '#ff5c8a'
+        var r = Math.min(W, H) * 0.032
+        ctx.beginPath()
+        ctx.arc(en.x, en.y, r, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.fillStyle = '#0b0c10'
+        ctx.fillRect(en.x - r, en.y - r - 8, r * 2, 3)
+        ctx.fillStyle = '#5cff9d'
+        ctx.fillRect(en.x - r, en.y - r - 8, (r * 2) * (en.hp / en.maxHp), 3)
+      }
+
+      ctx.strokeStyle = '#ffe36c'
+      ctx.lineWidth = 2
+      for (var bIdx = 0; bIdx < beams.length; bIdx++) {
+        var beam = beams[bIdx]
+        ctx.globalAlpha = Math.max(0, beam.life / 0.08)
+        ctx.beginPath()
+        ctx.moveTo(beam.x1, beam.y1)
+        ctx.lineTo(beam.x2, beam.y2)
+        ctx.stroke()
+      }
+      ctx.globalAlpha = 1
+    }
+
+    requestAnimationFrame(step)
+  </script>
+</body>
+</html>

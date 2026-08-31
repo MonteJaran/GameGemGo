@@ -1,0 +1,16 @@
+{
+  "name": "swipeplayable-firebase-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:rules": "firebase emulators:exec --only firestore \"npx vitest run tests\"",
+    "flag": "node scripts/set-production-flag.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "vitest": "^3.0.0"
+  }
+}

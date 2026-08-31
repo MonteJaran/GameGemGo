@@ -1,0 +1,108 @@
+rules_version = '2';
+
+// PRODUCTION-MINDED FIRESTORE RULES — Phase 2.
+//
+// Guiding principle: the client is READ-ONLY for anything monetization- or
+// integrity-sensitive. Every write that matters (ad inventory, fraud
+// flags, qualified engagements, payout-related fields, production config)
+// happens exclusively through the Admin SDK inside Cloud Functions
+// (see ../functions/src), which bypasses these rules entirely. If a path
+// isn't explicitly opened below, it is denied — there is no open dev mode
+// here and there must never be one in a shipped build.
+//
+// Validate this file with the Firebase emulator + a rules test suite
+// before every deploy (see README.md "Testing security rules").
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Public, client-readable config -----------------------------
+    // Non-sensitive app config only (feature flags, min supported build,
+    // banner copy). Anything a client shouldn't see (partner terms,
+    // internal thresholds) lives in app_config (server-only) instead.
+    match /app_config_public/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ---- Ad inventory --------------------------------------------------
+    // Client-safe fields only (title, genre, thumbnail, playable entry
+    // URL, CTA target). Mirrors src/types/creative.ts's CreativePublic.
+    match /ad_creatives_public/{creativeId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Full creative record incl. partner/payout/quality-score fields.
+    // Server-only, always — Cloud Functions read this with the Admin SDK
+    // when assembling ad_creatives_public, never the other way around.
+    match /ad_creatives/{creativeId} {
+      allow read, write: if false;
+    }
+
+    // ---- Users -----------------------------------------------------
+    // Owner may read/write their own lightweight profile doc, but only a
+    // fixed whitelist of harmless fields — never anything that could
+    // influence fraud scoring or qualification (e.g. isInternalTestUser).
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nonPersonalizedMode', 'consent', 'createdAt']);
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['nonPersonalizedMode', 'consent']);
+      allow delete: if false;
+    }
+
+    // ---- Raw events --------------------------------------------------
+    // No direct client writes at all, by design (see spec: "prefer
+    // callable function if simpler"). Raw interaction/candidate events go
+    // through the `logRawEvent` callable Cloud Function, which validates
+    // shape + rate-limits + stamps a server timestamp before writing here
+    // with the Admin SDK. This also means a compromised/rooted client
+    // can't forge historical events or backdate them.
+    match /events_raw/{eventId} {
+      allow read, write: if false;
+    }
+
+    // ---- Everything qualification/fraud/monetization touches --------
+    // Server-only outputs. The client never reads these directly — the
+    // Profile screen's counts come from the client's own local event log
+    // (Phase 1) or a narrow, purpose-built read model (Phase 2 TODO),
+    // never from these collections.
+    match /sessions/{sessionId} {
+      allow read, write: if false;
+    }
+    match /qualified_events/{eventId} {
+      allow read, write: if false;
+    }
+    match /fraud_flags/{flagId} {
+      allow read, write: if false;
+    }
+    match /production_flags/{docId} {
+      allow read, write: if false;
+    }
+    match /partner_sensitive/{docId} {
+      allow read, write: if false;
+    }
+    // Full (non-public) app config: partner terms, internal thresholds.
+    match /app_config/{docId} {
+      allow read, write: if false;
+    }
+    // Server-held daily outbound-click counters (fraudScoring.ts) and the
+    // generic rate limiter (rateLimit.ts). Both exist specifically so a
+    // client can't reset them by clearing local storage — never client
+    // read/write.
+    match /counters/{docId} {
+      allow read, write: if false;
+    }
+    match /rate_limits/{docId} {
+      allow read, write: if false;
+    }
+
+    // ---- Default deny -------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,63 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.*
+!.env.example
+
+# Native Android project: tracked (it now carries real hand-written config
+# — release signing, R8 rules — not just Capacitor's disposable web-asset
+# mirror), but not its generated/machine-specific/secret parts.
+android/**/build/
+android/.gradle/
+android/local.properties
+android/app/src/main/assets/public
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/capacitor-cordova-android-plugins
+android/**/*.jks
+android/**/*.keystore
+android/keystore.properties
+
+# No iOS platform generated (Android-only per spec) — ignore if it ever is.
+/ios
+
+# Firebase
+firebase/functions/lib
+firebase/functions/node_modules
+firebase/node_modules
+.firebase
+*firebase-debug.log
+*firestore-debug.log
+*ui-debug.log
+firebase/.runtimeconfig.json
+install.log
+
+# Not a true secret (API access is gated by Firestore/Storage rules + Android
+# SHA fingerprint restrictions, not by hiding this file) but still excluded
+# by default so it doesn't end up in a public repo by accident.
+# android/app/google-services.json is regenerated from the durable
+# firebase/google-services.json reference copy if android/ is ever
+# deleted/regenerated (see README).
+google-services.json
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,18 @@
+{
+  "_comment": "Example split between app_config (server-only) and app_config_public (client-readable). A Cloud Function you add later would project the safe subset the same way syncPublicCreative does for creatives — not implemented yet, this file just documents the intended shape.",
+  "app_config": {
+    "main": {
+      "minSupportedBuild": 1,
+      "outboundClickDailyCapOverride": null,
+      "internalTestUids": [],
+      "fraudThresholdOverrides": { "blockScoreThreshold": 70, "suspiciousScoreThreshold": 30 }
+    }
+  },
+  "app_config_public": {
+    "main": {
+      "minSupportedBuild": 1,
+      "feedBatchSize": 20,
+      "bannerMessage": null
+    }
+  }
+}

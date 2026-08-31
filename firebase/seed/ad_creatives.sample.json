@@ -1,0 +1,17 @@
+{
+  "_comment": "Example of a full server-only ad_creatives/{id} doc. Import into the emulator or a real project with `firebase firestore:seed` style tooling of your choice — not wired up automatically. syncPublicCreative (functions) projects the public subset into ad_creatives_public from this shape.",
+  "demo-endless-runner": {
+    "title": "Skyline Dash",
+    "genre": "runner",
+    "thumbnail": { "kind": "placeholder-gradient", "from": "#ff8a5c", "to": "#ff5c8a", "glyph": "🏃" },
+    "badgeLabel": "Playable Preview",
+    "partnerLabel": "Acme Games",
+    "playable": { "kind": "remote", "entry": "https://cdn.example.com/playables/skyline-dash/index.html" },
+    "cta": { "kind": "external", "value": "https://play.google.com/store/apps/details?id=com.example.skylinedash" },
+    "active": true,
+    "partnerId": "partner_acme",
+    "payoutTermsRef": "partner_sensitive/partner_acme",
+    "qualityScore": 0.82,
+    "revenueFlags": { "eligible": true, "cpiTier": "standard" }
+  }
+}

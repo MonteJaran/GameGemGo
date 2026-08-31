@@ -1,0 +1,85 @@
+:root {
+  color-scheme: dark;
+
+  --color-bg: #0b0c10;
+  --color-surface: #15171c;
+  --color-surface-raised: #1c1f26;
+  --color-border: #262932;
+  --color-text: #f2f3f5;
+  --color-text-dim: #9aa0a6;
+  --color-text-faint: #676c76;
+  --color-accent: #6c7bff;
+  --color-accent-text: #ffffff;
+  --color-danger: #ff5c5c;
+  --color-warning: #ffb84d;
+  --color-success: #4ade80;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  overscroll-behavior-y: none;
+}
+
+#root {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+/* Touch targets: keep every tappable control comfortably above the ~44px minimum. */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes spv-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

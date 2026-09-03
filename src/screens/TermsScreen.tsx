@@ -50,7 +50,11 @@ export function TermsScreen() {
           Playable previews from advertising partners are that partner's content, shown through
           this app's sandboxed preview. We aim to keep partner content free of deceptive or
           accidental-click design, but we don't control what a partner's playable does once it's
-          on screen — report anything that looks wrong via the contact below.
+          on screen — report anything that looks wrong via the contact below. We may provide the
+          developer of a submitted or promoted creative with an aggregate performance readout
+          about their own content (e.g. when in a session players tend to exit, how many reach
+          genuine engagement) to help them improve it — see our Privacy Policy for what "aggregate"
+          means here.
         </p>
 
         <h2>No warranty</h2>

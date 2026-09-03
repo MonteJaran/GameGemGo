@@ -57,7 +57,11 @@ export function PrivacyScreen() {
           because their card was shown to you. Even then, what they receive is an aggregate,
           anonymous engagement/fraud signal (e.g. "this creative was genuinely played, from a
           non-fraudulent session") for campaign reporting, never anything that identifies you
-          personally.
+          personally. This can include aggregate timing/behavior patterns for that creative
+          specifically — for example what fraction of sessions exit within the first few seconds,
+          or how many reach genuine engagement — computed across many sessions together, so a
+          developer can improve their playable's performance without ever seeing anything about one
+          identifiable visit.
         </p>
 
         <h2>Playable ad content &amp; partners</h2>

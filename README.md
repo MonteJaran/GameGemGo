@@ -78,13 +78,20 @@ stays a static thumbnail until it becomes current, so there's never more
 than one game running at once.
 
 **Background prefetch**: `src/services/creatives/playableCache.ts` — as
-soon as the feed list loads, every `kind: 'remote'` creative's game is
-fetched and cached (Cache Storage API) in the background, fire-and-forget
-(`useFeed.ts`). `FeedCard.tsx` renders straight from that cache
-(`srcDoc`) when it's there, so a card is instantly playable — no network
-wait right when the user reaches it — and falls back to a live fetch
-(`src={url}`, today's behavior) whenever nothing's cached yet, so a card
-is never stuck empty just because prefetching hasn't finished.
+soon as the feed list loads, every `kind: 'remote'` creative *after the
+first* is fetched and cached (Cache Storage API) in the background,
+sequentially and in feed order (never all at once — see `prefetchAll`'s
+own comment for why firing them in parallel would actually slow the next
+card down on a constrained connection), fire-and-forget from
+`useFeed.ts`. The first (topmost) creative is deliberately *not*
+background-prefetched — `FeedCard.tsx`'s `LivePlayableFrame` already loads
+it directly via a live `<iframe src>` the instant it's the interactive top
+card, so prefetching the same URL again at the same time would just split
+one connection's bandwidth between two requests for the identical file.
+Every other card renders straight from cache (`srcDoc`) once its turn in
+the queue is done, and falls back to a live fetch (`src={url}`) whenever
+nothing's cached yet, so a card is never stuck empty just because
+prefetching hasn't reached it.
 
 ## Promo games (prepaid sponsor placements)
 
@@ -138,6 +145,33 @@ different spot in the scroll each time rather than always the same slot.
 One example ships today, `featured-fortress-siege` in `localCreatives.ts`
 — it currently reuses the tower-defense demo's HTML as a placeholder;
 swap `playable.entry` for a genuinely distinct game whenever one's ready.
+
+## Business / advertiser-facing pieces
+
+- **In-app**: Profile & Settings → Business (`src/screens/BusinessScreen.tsx`)
+  explains how to get a game featured (free during early access — points at
+  a submission form, see `src/config/business.ts` for the URL placeholder to
+  fill in) or ask about a promo placement (contact instead of a public
+  price list). Mirrors `firebase/public/advertise/index.html` on the public
+  site — keep both in sync by hand, the webpage can't import the screen's JSX.
+- **Hosting playables cheaply at scale**: `firebase/HOSTING.md` — Cloudflare
+  R2 setup (zero egress cost, unlike Firebase Storage/S3/GCS which bill per
+  GB downloaded) and the upload workflow. `playable.entry` is just a URL,
+  so this is a hosting decision, not a code change.
+- **Promo rate-card planning**: `firebase/PROMO_PRICING_GUIDE.md` — industry
+  CPC/eCPM benchmark anchors plus `firebase/scripts/promo-pricing-
+  calculator.mjs`, a pure-arithmetic CLI that turns a prepaid budget into
+  projected clicks/engagements under a rate card. Reference material for
+  *setting* a campaign's terms — not wired into any live code.
+- **Creative performance reporting**: `firebase/scripts/creative-
+  performance-report.mjs` — read-only, built from the same
+  `playable_focus_end` events every session already logs (`activeFocusedMs`
+  at exit *is* "what second did they skip"). Reports a time-to-exit
+  histogram, engaged rate, and outbound CTR for one creative, with a few
+  plain-language suggestions. Needs Phase 2 deployed + real traffic to say
+  anything (see `LAUNCH_CHECKLIST.md`) — written now so it's ready then.
+  Disclosed to users in `PrivacyScreen.tsx`/`TermsScreen.tsx` as the
+  aggregate, non-identifying signal a creative's developer may receive.
 
 ## Environment modes
 

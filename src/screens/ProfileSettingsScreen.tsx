@@ -75,6 +75,17 @@ export function ProfileSettingsScreen() {
           </button>
         </div>
 
+        <div className="settings-section">
+          <p className="settings-section__title">Business</p>
+          <button className="settings-row" onClick={() => navigate({ name: 'business' })}>
+            <span>
+              <span className="settings-row__label">Submit a game / advertise</span>
+              <div className="settings-row__hint">Get your game featured, or ask about promo placements</div>
+            </span>
+            <span aria-hidden="true">›</span>
+          </button>
+        </div>
+
         {env.debugScreenEnabled && (
           <div className="settings-section">
             <p className="settings-section__title">Internal / test build</p>

@@ -11,6 +11,7 @@ export type Route =
   | { name: 'home' }
   | { name: 'game'; creativeId: string }
   | { name: 'profile' }
+  | { name: 'business' }
   | { name: 'privacy' }
   | { name: 'terms' }
   | { name: 'debug' }
@@ -21,6 +22,7 @@ function parseHash(hash: string): Route {
   if (segments.length === 0) return { name: 'home' }
   if (segments[0] === 'game' && segments[1]) return { name: 'game', creativeId: decodeURIComponent(segments[1]) }
   if (segments[0] === 'profile') return { name: 'profile' }
+  if (segments[0] === 'business') return { name: 'business' }
   if (segments[0] === 'privacy') return { name: 'privacy' }
   if (segments[0] === 'terms') return { name: 'terms' }
   if (segments[0] === 'debug') return { name: 'debug' }
@@ -35,6 +37,8 @@ function routeToHash(route: Route): string {
       return `#/game/${encodeURIComponent(route.creativeId)}`
     case 'profile':
       return '#/profile'
+    case 'business':
+      return '#/business'
     case 'privacy':
       return '#/privacy'
     case 'terms':

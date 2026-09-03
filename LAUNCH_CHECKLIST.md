@@ -129,6 +129,16 @@ in the order you'd tackle what's left.
       adding promo games. See `firebase/FIREBASE_SCHEMA.md`'s promo section.
 - [ ] Real dashboard/scheduled query over `qualified_events`/`fraud_flags`.
 - [ ] Alerting on Cloud Function error rate / fraud-flag spikes.
+- [x] Business-facing pieces, ready for when there's real traffic to feed
+      them: game-submission info (in-app Business screen +
+      `firebase/public/advertise/`, form URL still a placeholder — see
+      `src/config/business.ts`), `firebase/HOSTING.md` (Cloudflare R2 for
+      near-zero-cost playable hosting), `firebase/PROMO_PRICING_GUIDE.md` +
+      `scripts/promo-pricing-calculator.mjs` (rate-card planning), and
+      `scripts/creative-performance-report.mjs` (per-creative time-to-exit/
+      engagement readout for a developer). None of this is wired into any
+      live path — pure tooling/content, same not-yet-deployed status as
+      the rest of Phase 2.
 
 ---
 

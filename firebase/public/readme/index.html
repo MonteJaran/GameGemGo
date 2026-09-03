@@ -86,7 +86,7 @@ npm run dev</code></pre>
 <li><strong>tap</strong> (barely any movement) — open the game's page, through the same fraud gatekeeper as before; a block just silently no-ops.</li>
 </ul>
 <p>Restricting both to the edges is deliberate, not just styling: once a live game (a cross-origin sandboxed <code>&lt;iframe&gt;</code>) occupies the middle of the card, a pointer that moves over it stops being deliverable to the parent page at all, so a gesture has to start on an element outside the iframe to track reliably. Only the current (top) card ever mounts a live iframe.</p>
-<p><strong>Background prefetch</strong>: <code>src/services/creatives/playableCache.ts</code> — as soon as the feed list loads, every <code>kind: 'remote'</code> creative's game is fetched and cached (Cache Storage API) in the background. <code>FeedCard.tsx</code> renders straight from that cache when it's there, falling back to a live fetch whenever nothing's cached yet.</p>
+<p><strong>Background prefetch</strong>: <code>src/services/creatives/playableCache.ts</code> — every <code>kind: 'remote'</code> creative <em>after the first</em> is fetched and cached (Cache Storage API) in the background, one at a time in feed order rather than all at once (so an early card never has to share bandwidth with several others starting simultaneously). The first/topmost creative is skipped here on purpose — it's already loading directly via a live <code>&lt;iframe src&gt;</code> the moment it's the top card, so prefetching the same URL again would just split one connection's bandwidth in two. <code>FeedCard.tsx</code> renders straight from cache once it's there, falling back to a live fetch whenever nothing's cached yet.</p>
 
 <h2>Promo games (prepaid sponsor placements)</h2>
 <p>A "promo" creative is a prepaid placement — a company paying to be featured at the top of the feed, rather than ordinary ad-network inventory earning per-click/engagement revenue. <strong>Never hardcoded into the app</strong> — it's exactly the same kind of <code>ad_creatives</code> doc as any other <code>kind: 'remote'</code> creative (a URL you host), rendered by the exact same feed → sandboxed-iframe pipeline. Only a <code>placement: 'promo'</code> flag distinguishes it, which:</p>
@@ -100,6 +100,10 @@ npm run dev</code></pre>
 <h2>Featured games (curated filler, not paid, not ad-network)</h2>
 <p>A third <code>placement</code> value alongside <code>network</code>/<code>promo</code>: <code>featured</code> is the operator's own bundled/curated content, added so the feed doesn't look thin to a reviewer. It's <strong>not</strong> a promo — no prepaid balance, no rate card, no money fields at all, and the promo billing path never fires for it. Same plain framing as a <code>network</code> creative, same engagement/click tracking — nothing branches on <code>placement</code> there, so it's counted exactly like any other game, no separate calculator.</p>
 <p>The only difference is position: each featured creative lands at a random index among the <code>network</code> ones on every feed load, instead of a fixed slot.</p>
+
+<h2>Business / advertiser-facing pieces</h2>
+<p>In-app: Profile &amp; Settings → Business explains how to get a game featured (free during early access) or ask about a promo placement. Mirrors <a href="/advertise/">/advertise/</a> on this site.</p>
+<p><code>firebase/HOSTING.md</code> covers hosting playables on Cloudflare R2 (zero egress cost at any scale). <code>firebase/PROMO_PRICING_GUIDE.md</code> plus <code>scripts/promo-pricing-calculator.mjs</code> turn a prepaid budget into projected clicks/engagements for setting a rate card. <code>scripts/creative-performance-report.mjs</code> reports a time-to-exit histogram and engaged rate per creative once there's real traffic — disclosed to users as the aggregate signal a creative's developer may receive.</p>
 
 <h2>Environment modes</h2>
 <div class="tablewrap">

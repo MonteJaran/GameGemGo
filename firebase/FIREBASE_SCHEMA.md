@@ -116,6 +116,11 @@ spec for why (client can't forge/backdate events if it can't write them).
 | payload | map? |
 | environment | string |
 
+`scripts/creative-performance-report.mjs` reads this collection (filtered
+to one `creativeId`) to build a time-to-exit histogram and engaged-rate
+readout for a creative's developer — see README's "Business /
+advertiser-facing pieces".
+
 ## `sessions/{sessionId}`
 Server-only. Built by Cloud Functions from `events_raw` (playable_open →
 playable_focus_end), not written directly by the client.

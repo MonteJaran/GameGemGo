@@ -12,6 +12,7 @@ const GameDetailScreen = lazy(() => import('./screens/GameDetailScreen').then((m
 const ProfileSettingsScreen = lazy(() =>
   import('./screens/ProfileSettingsScreen').then((m) => ({ default: m.ProfileSettingsScreen })),
 )
+const BusinessScreen = lazy(() => import('./screens/BusinessScreen').then((m) => ({ default: m.BusinessScreen })))
 const DebugScreen = lazy(() => import('./screens/DebugScreen').then((m) => ({ default: m.DebugScreen })))
 const PrivacyScreen = lazy(() => import('./screens/PrivacyScreen').then((m) => ({ default: m.PrivacyScreen })))
 const TermsScreen = lazy(() => import('./screens/TermsScreen').then((m) => ({ default: m.TermsScreen })))
@@ -25,6 +26,8 @@ function Screens() {
       return <GameDetailScreen creativeId={route.creativeId} />
     case 'profile':
       return <ProfileSettingsScreen />
+    case 'business':
+      return <BusinessScreen />
     case 'debug':
       // Belt-and-suspenders: even if something links here, don't route to
       // the debug chunk at all in a production build.

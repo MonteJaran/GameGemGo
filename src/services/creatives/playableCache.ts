@@ -8,6 +8,9 @@
  * `getCachedPlayableHtml` and falls back to a live `src={url}` fetch
  * (today's behavior) whenever nothing's cached yet — a slow or failed
  * prefetch degrades to "load it live" rather than ever breaking the card.
+ * `prefetchAll` deliberately skips the first (topmost) entry and prefetches
+ * the rest one at a time, in feed order, rather than all at once — see its
+ * own doc comment below for why.
  *
  * Uses the standard Cache Storage API — already available in any
  * Capacitor/Android WebView or desktop browser, no native plugin needed —
@@ -67,11 +70,38 @@ export async function prefetchPlayable(url: string): Promise<void> {
   return task
 }
 
-/** Prefetches every `kind: 'remote'` creative's URL in the given list — see useFeed.ts, the single place this is called from. */
+/**
+ * Prefetches every `kind: 'remote'` creative's URL in the given list — see
+ * useFeed.ts, the single place this is called from. Two deliberate choices
+ * for keeping the *first* card's wait time as low as possible on a slow
+ * connection:
+ *
+ * 1. Entry 0 is skipped here. It's whatever's on top of the freshly
+ *    sorted feed (a promo, if one exists — see feedService.ts), and
+ *    FeedCard's LivePlayableFrame already loads that exact URL directly
+ *    via a live `<iframe src>` the moment it becomes the interactive top
+ *    card, in parallel with this function running. Also fetch()-ing it
+ *    here would just split one connection's bandwidth between two
+ *    requests for the identical file — worse for that first card's speed,
+ *    not better. (Its result still gets cached once loaded — see
+ *    FeedCardStack.tsx's use of `getCachedPlayableHtml` — this only skips
+ *    the redundant *prefetch*, not caching for next time.)
+ * 2. Entries 1..N prefetch strictly in feed order, one at a time — never
+ *    fired all at once. On a constrained connection, five simultaneous
+ *    downloads all finish slowly together; sequential means the *next*
+ *    card the user will actually reach finishes first, instead of
+ *    competing with cards 4-5-6 they may never swipe to this session.
+ *
+ * Fire-and-forget from the caller's side (not awaited) — this function's
+ * own sequencing is what changed, not whether callers wait on it.
+ */
 export function prefetchAll(entries: Array<{ kind: 'local' | 'remote'; entry: string }>): void {
-  for (const { kind, entry } of entries) {
-    if (kind === 'remote') void prefetchPlayable(entry)
-  }
+  void (async () => {
+    for (const { kind, entry } of entries.slice(1)) {
+      if (kind !== 'remote') continue
+      await prefetchPlayable(entry)
+    }
+  })()
 }
 
 export async function getCachedPlayableHtml(url: string): Promise<string | null> {

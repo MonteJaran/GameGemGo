@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0b0c10" />
+<meta name="description" content="GameGemGo — sponsor placement pricing (Promo vs Featured) and a budget calculator. Demo/indicative rates, not a final offer." />
+<title>GameGemGo Advertise</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0c10;
+    --surface: #15171c;
+    --surface-raised: #1c1f26;
+    --border: #262932;
+    --text: #f2f3f5;
+    --text-dim: #9aa0a6;
+    --text-faint: #676c76;
+    --accent: #6c7bff;
+    --gold: #f5d576;
+    --gold-deep: #b8860b;
+    --emerald: #6ee7b7;
+    --emerald-deep: #047857;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 24px 100px; }
+
+  header.top { display: flex; align-items: center; justify-content: space-between; padding: 28px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 19px; text-decoration: none; color: var(--text); }
+  .brand__mark { width: 28px; height: 28px; flex-shrink: 0; }
+  nav.top a { color: var(--text-dim); text-decoration: none; font-size: 14.5px; font-weight: 600; margin-left: 26px; }
+  nav.top a:hover { color: var(--text); }
+
+  .hero { padding: 20px 0 40px; border-top: 1px solid var(--border); }
+  .hero__eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--accent); background: rgba(108,123,255,0.1); border: 1px solid rgba(108,123,255,0.25);
+    padding: 5px 12px; border-radius: 999px; margin-bottom: 20px;
+  }
+  h1 { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 38px; line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 14px; max-width: 18ch; }
+  .hero p.lead { font-size: 17.5px; color: var(--text-dim); max-width: 62ch; margin: 0; }
+
+  h2 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 22px; margin: 48px 0 6px; }
+  .section-hint { font-size: 14.5px; color: var(--text-dim); margin: 0 0 22px; max-width: 66ch; }
+
+  .tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .tiers { grid-template-columns: 1fr; } }
+  .tier { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .tier--promo {
+    border: 2px solid transparent;
+    background: linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(135deg, var(--gold), var(--gold-deep), var(--gold)) border-box;
+  }
+  .tier--featured { border-color: var(--border); }
+  .tier__badge { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; margin-bottom: 12px; }
+  .tier--promo .tier__badge { color: #1a1305; background: linear-gradient(135deg, var(--gold), var(--emerald)); }
+  .tier--featured .tier__badge { color: var(--text); background: var(--surface-raised); border: 1px solid var(--border); }
+  .tier h3 { font-family: 'Sora', sans-serif; font-size: 19px; margin: 0 0 8px; }
+  .tier p { font-size: 14.5px; color: var(--text-dim); margin: 0 0 14px; }
+  .tier ul { margin: 0; padding-left: 18px; font-size: 14px; color: var(--text-dim); }
+  .tier li { margin-bottom: 5px; }
+  .tier li strong { color: var(--text); }
+  .rate-row { display: flex; justify-content: space-between; font-size: 14px; padding: 7px 0; border-top: 1px solid var(--border); }
+  .rate-row:first-of-type { border-top: none; margin-top: 4px; }
+  .rate-row span:last-child { font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--text); }
+
+  .calc {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 26px;
+  }
+  .calc__budget { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+  .calc__budget label { font-size: 13.5px; color: var(--text-dim); font-weight: 600; }
+  .calc__input-row { display: flex; align-items: center; gap: 10px; }
+  .calc__input-row input[type="number"] {
+    width: 140px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 20px; font-weight: 600;
+    background: var(--surface-raised); border: 1px solid var(--border); color: var(--text);
+    border-radius: 10px; padding: 9px 12px;
+  }
+  .calc__input-row input[type="number"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .calc__euro { font-size: 20px; color: var(--text-dim); font-weight: 600; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); margin: 14px 0 4px; }
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+  .preset-btn {
+    font-size: 13px; font-weight: 600; color: var(--text-dim); background: var(--surface-raised);
+    border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  }
+  .preset-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .calc__results { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .calc__results { grid-template-columns: 1fr; } }
+  .result-card { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .result-card--promo { border-top: 3px solid var(--gold); }
+  .result-card--featured { border-top: 3px solid var(--text-faint); }
+  .result-card h4 { font-family: 'Sora', sans-serif; font-size: 14.5px; margin: 0 0 14px; display: flex; justify-content: space-between; align-items: center; }
+  .save-chip { font-size: 11.5px; font-weight: 700; color: var(--emerald); background: rgba(110,231,183,0.1); border: 1px solid rgba(110,231,183,0.3); padding: 2px 8px; border-radius: 999px; }
+  .metric { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--border); }
+  .metric:first-of-type { border-top: none; padding-top: 0; }
+  .metric__label { font-size: 13.5px; color: var(--text-dim); }
+  .metric__value { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; font-weight: 600; color: var(--text); }
+  .metric__unit { font-size: 12px; color: var(--text-faint); margin-left: 4px; }
+  .calc__note { font-size: 12.5px; color: var(--text-faint); margin: 18px 0 0; }
+
+  .assumptions { font-size: 13.5px; color: var(--text-dim); }
+  .assumptions table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 13.5px; }
+  .assumptions th, .assumptions td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  .assumptions th { color: var(--text); background: var(--surface); font-weight: 600; }
+  .assumptions td:last-child, .assumptions th:last-child { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .assumptions .cite { font-size: 12px; color: var(--text-faint); }
+  .assumptions .cite a { color: var(--text-faint); }
+
+  .disclaimer {
+    margin-top: 44px; padding: 18px 20px; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface); font-size: 13px; color: var(--text-faint); line-height: 1.6;
+  }
+  .disclaimer strong { color: var(--text-dim); }
+
+  .cta-strip { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-top: 40px; padding: 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+  .cta-strip p { margin: 0; font-size: 14.5px; color: var(--text-dim); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; padding: 11px 18px; border-radius: 10px; text-decoration: none; border: 1px solid transparent; white-space: nowrap; }
+  .btn--primary { background: var(--accent); color: #fff; }
+
+  footer { border-top: 1px solid var(--border); padding: 28px 0 48px; margin-top: 44px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; color: var(--text-faint); }
+  footer a { color: var(--text-faint); text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="/">
+        <svg class="brand__mark" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#12141a"/><path d="M24 8 L36 20 L30 40 L18 40 L12 20 Z" fill="#c9971f"/><path d="M24 8 L36 20 L24 24 Z" fill="#f5d576"/><path d="M24 8 L12 20 L24 24 Z" fill="#dcae5c"/><path d="M12 20 L18 40 L24 24 Z" fill="#93711f"/><path d="M36 20 L30 40 L24 24 Z" fill="#7a5a10"/></svg>
+        GameGemGo
+      </a>
+      <nav class="top">
+        <a href="/readme/">Docs</a>
+        <a href="/legal/">Legal</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <span class="hero__eyebrow">Sponsor placements · demo pricing</span>
+      <h1>Two ways to put your playable in front of players</h1>
+      <p class="lead">
+        GameGemGo sells two kinds of direct, prepaid sponsor placement — separate from
+        ordinary ad-network inventory, which we don't set the price of. Both draw down
+        a prepaid balance per click and per qualified engagement; neither ever charges
+        more than what's left in the balance. Rates below are an indicative demo, not a
+        signed offer — see the disclaimer at the bottom.
+      </p>
+    </section>
+
+    <h2>Promo vs Featured</h2>
+    <p class="section-hint">The only things that differ are position, framing, and price — tracking, billing mechanics, and the sandboxed playable pipeline are identical.</p>
+    <div class="tiers">
+      <div class="tier tier--promo">
+        <span class="tier__badge">Promo · full price</span>
+        <h3>Pinned at the top</h3>
+        <p>Always the first card in the feed, wrapped in a gold or emerald frame — clearly marked as a paid placement, every time.</p>
+        <ul>
+          <li><strong>Position:</strong> first, every load</li>
+          <li><strong>Framing:</strong> gold/emerald sponsor frame</li>
+          <li><strong>Best for:</strong> a launch moment, maximum guaranteed visibility</li>
+        </ul>
+      </div>
+      <div class="tier tier--featured">
+        <span class="tier__badge">Featured · 40% less</span>
+        <h3>Blended into the feed</h3>
+        <p>Dropped at a random spot among ordinary games instead of pinned first, with plain framing — no gold/emerald border. Priced 40% below Promo to reflect that.</p>
+        <ul>
+          <li><strong>Position:</strong> random, reshuffled every load</li>
+          <li><strong>Framing:</strong> plain — same as regular inventory</li>
+          <li><strong>Best for:</strong> steady low-cost reach without a premium slot</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>Budget calculator</h2>
+    <p class="section-hint">Drag the slider or pick a preset — both tiers update side by side. Each number assumes the whole budget spent on just that one metric, not a blended campaign.</p>
+    <div class="calc">
+      <div class="calc__budget">
+        <div class="calc__input-row">
+          <label for="budgetInput">Budget</label>
+          <span class="calc__euro">€</span>
+          <input type="number" id="budgetInput" min="10" max="20000" step="10" value="500" />
+        </div>
+      </div>
+      <input type="range" id="budgetSlider" min="10" max="5000" step="10" value="500" />
+      <div class="presets">
+        <button class="preset-btn" data-amount="50">€50</button>
+        <button class="preset-btn" data-amount="100">€100</button>
+        <button class="preset-btn" data-amount="250">€250</button>
+        <button class="preset-btn" data-amount="500">€500</button>
+        <button class="preset-btn" data-amount="1000">€1,000</button>
+        <button class="preset-btn" data-amount="5000">€5,000</button>
+      </div>
+
+      <div class="calc__results">
+        <div class="result-card result-card--promo">
+          <h4>Promo</h4>
+          <div class="metric"><span class="metric__label">Max clicks</span><span class="metric__value" id="promoClicks">–</span></div>
+          <div class="metric"><span class="metric__label">Max qualified engagements</span><span class="metric__value" id="promoEngagements">–</span></div>
+          <div class="metric"><span class="metric__label">Max views (impressions)</span><span class="metric__value" id="promoViews">–</span></div>
+        </div>
+        <div class="result-card result-card--featured">
+          <h4>Featured <span class="save-chip" id="savingsChip">saves €0</span></h4>
+          <div class="metric"><span class="metric__label">Max clicks</span><span class="metric__value" id="featuredClicks">–</span></div>
+          <div class="metric"><span class="metric__label">Max qualified engagements</span><span class="metric__value" id="featuredEngagements">–</span></div>
+          <div class="metric"><span class="metric__label">Max views (impressions)</span><span class="metric__value" id="featuredViews">–</span></div>
+        </div>
+      </div>
+      <p class="calc__note">"Max" = if this budget went entirely to that one metric — a real campaign spends across all three as players actually engage, so day-to-day numbers land well under these ceilings, same as any prepaid rate-card deal (see <code>rateCardCents</code> in <code>FIREBASE_SCHEMA.md</code>).</p>
+    </div>
+
+    <h2>Where the rates come from</h2>
+    <p class="section-hint">Indicative, not a live feed of any exchange rate or ad-network auction — for illustration only. Promo's per-click/per-engagement numbers match the example rate card already in the codebase (<code>ad_creatives.sample.json</code>); Featured is Promo × 0.6 (40% off) end to end.</p>
+    <div class="assumptions">
+      <table>
+        <tr><th></th><th>Promo (full)</th><th>Featured (−40%)</th><th>Basis</th></tr>
+        <tr><td>Per click</td><td>€1.00</td><td>€0.60</td><td>Gaming-vertical CPC averages ~$1.50, typical range $0.50–$4.00</td></tr>
+        <tr><td>Per qualified engagement</td><td>€0.50</td><td>€0.30</td><td>No public per-engagement benchmark exists (not a standard billed unit) — set at half the click rate, matching this app's own existing example rate card</td></tr>
+        <tr><td>Per view (impression)</td><td>€0.02</td><td>€0.012</td><td>Playable-ad eCPM benchmarks run ~$10–$30 per 1,000 impressions in tier-1 markets → ~€0.01–€0.03 per view</td></tr>
+      </table>
+      <p class="cite">Sources: <a href="https://www.businessofapps.com/ads/cpc/research/cpc-rates/" target="_blank" rel="noopener">Business of Apps — CPC rates</a>, <a href="https://www.businessofapps.com/ads/research/mobile-app-advertising-cpm-rates/" target="_blank" rel="noopener">Business of Apps — mobile ad CPM rates</a>. "Qualified engagement" is this app's own Level-3 threshold (10s+ active play, 2+ interactions) — see <code>qualificationEngine.ts</code> — not an industry-standard unit any network publishes a price for.</p>
+    </div>
+
+    <div class="disclaimer">
+      <strong>This page is a demo, not an offer.</strong> Rates are illustrative planning numbers, not
+      a signed rate card, and can change per deal (the underlying <code>rateCardCents</code> field
+      already supports a different rate per sponsor). Nothing here is legal, tax, or financial advice —
+      setting your own prices for direct-sold placements below what an ad network happens to pay is a
+      standard, legal pricing decision (advertising is a service/intangible, so it falls outside
+      price-discrimination statutes like the U.S. Robinson-Patman Act, which apply only to commodities);
+      the two things actually worth a professional's review before real money moves are (1) VAT/invoicing
+      once you're billing companies directly, especially cross-border in the EU, and (2) whatever
+      exclusivity or minimum-rate clause a future ad-network partner's contract includes, since that
+      contract — not general law — is what could restrict discounting your own direct-sold inventory
+      later.
+    </div>
+
+    <div class="cta-strip">
+      <p>Want a real quote or a custom rate card for your game?</p>
+      <a class="btn btn--primary" href="mailto:dejanradoman00@gmail.com?subject=GameGemGo%20sponsor%20placement%20inquiry">Email us</a>
+    </div>
+
+    <footer>
+      <span>GameGemGo · developed by Dejan Radoman</span>
+      <span><a href="mailto:dejanradoman00@gmail.com">dejanradoman00@gmail.com</a> · <a href="/legal/">Privacy Policy</a></span>
+    </footer>
+  </div>
+
+<script>
+(function () {
+  // Mirrors rateCardCents shape from FIREBASE_SCHEMA.md — everything here is
+  // in whole euros for display simplicity; a real integration would carry
+  // these as integer cents like the Firestore doc does.
+  var RATES = {
+    promo: { click: 1.00, engagement: 0.50, view: 0.02 },
+    featured: { click: 0.60, engagement: 0.30, view: 0.012 },
+  };
+
+  var budgetInput = document.getElementById('budgetInput');
+  var budgetSlider = document.getElementById('budgetSlider');
+
+  function fmtInt(n) {
+    return Math.floor(n).toLocaleString('en-US');
+  }
+
+  function render(amountRaw) {
+    var amount = Math.max(0, Number(amountRaw) || 0);
+
+    document.getElementById('promoClicks').textContent = fmtInt(amount / RATES.promo.click);
+    document.getElementById('promoEngagements').textContent = fmtInt(amount / RATES.promo.engagement);
+    document.getElementById('promoViews').textContent = fmtInt(amount / RATES.promo.view);
+
+    document.getElementById('featuredClicks').textContent = fmtInt(amount / RATES.featured.click);
+    document.getElementById('featuredEngagements').textContent = fmtInt(amount / RATES.featured.engagement);
+    document.getElementById('featuredViews').textContent = fmtInt(amount / RATES.featured.view);
+
+    var promoCostForSameClicks = (amount / RATES.featured.click) * RATES.promo.click;
+    var savings = Math.max(0, promoCostForSameClicks - amount);
+    document.getElementById('savingsChip').textContent = 'saves €' + fmtInt(savings) + ' vs Promo';
+  }
+
+  function syncFromInput() {
+    var v = Number(budgetInput.value) || 0;
+    if (budgetSlider) budgetSlider.value = Math.min(Number(budgetSlider.max), v);
+    render(v);
+  }
+
+  function syncFromSlider() {
+    budgetInput.value = budgetSlider.value;
+    render(budgetSlider.value);
+  }
+
+  budgetInput.addEventListener('input', syncFromInput);
+  budgetSlider.addEventListener('input', syncFromSlider);
+
+  Array.prototype.forEach.call(document.querySelectorAll('.preset-btn'), function (btn) {
+    btn.addEventListener('click', function () {
+      var amount = Number(btn.getAttribute('data-amount'));
+      budgetInput.value = amount;
+      budgetSlider.value = Math.min(Number(budgetSlider.max), amount);
+      render(amount);
+    });
+  });
+
+  render(budgetInput.value);
+})();
+</script>
+</body>
+</html>

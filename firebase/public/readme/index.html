@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0b0c10" />
+<meta name="description" content="GameGemGo — technical README." />
+<title>GameGemGo Docs</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0c10; --surface: #15171c; --border: #262932;
+    --text: #f2f3f5; --text-dim: #9aa0a6; --accent: #6c7bff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 100px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; padding: 24px 0; }
+  .back { color: var(--text-dim); text-decoration: none; font-size: 14.5px; font-weight: 600; }
+  .back:hover { color: var(--text); }
+  main { border-top: 1px solid var(--border); padding-top: 32px; }
+  main h1 { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 34px; letter-spacing: -0.01em; margin: 0 0 6px; }
+  main h2 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 22px; margin: 44px 0 14px; padding-top: 28px; border-top: 1px solid var(--border); }
+  main h2:first-of-type { border-top: none; margin-top: 28px; padding-top: 0; }
+  main h3 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16.5px; margin: 26px 0 10px; }
+  main p, main li { font-size: 15.5px; color: var(--text-dim); }
+  main li { margin-bottom: 4px; }
+  main ul, main ol { padding-left: 22px; }
+  main strong { color: var(--text); }
+  main code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.87em;
+    background: var(--surface); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; color: var(--text);
+  }
+  main pre {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; font-size: 13.5px;
+  }
+  main pre code { background: none; border: none; padding: 0; }
+  .tablewrap { overflow-x: auto; }
+  main table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  main th, main td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; }
+  main th { color: var(--text); background: var(--surface); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="back" href="/">&larr; GameGemGo</a>
+      <a class="back" href="/legal/">Legal</a>
+    </header>
+
+    <main>
+<h1>GameGemGo</h1>
+<p>A swipe feed for discovering playable game ad previews. Android-first MVP, built as a fast Capacitor + React + TypeScript shell — <strong>not</strong> a game engine app.</p>
+<p>Status: runs today in <strong>local_test mode</strong> with zero external services (3 built-in demo playables, local event logging, client-side fraud/qualification simulation). The Phase 2 Firebase backend — Auth, Firestore rules, Cloud Functions for server-side qualification/fraud — is written, type-checked, and passing its rules test suite, but not yet deployed to the live project.</p>
+
+<h2>Quick start (Phase 1 — no Android tooling needed)</h2>
+<pre><code>npm install
+npm run dev</code></pre>
+<p>Open the printed <code>localhost</code> URL. <code>.env</code> already defaults to <code>VITE_APP_ENV=local_test</code>, so the feed loads the 3 built-in demo creatives immediately — nothing to configure.</p>
+<p>This is the fastest way to iterate on UI/logic: a normal browser tab, no emulator, no Android Studio. The app doesn't use any Capacitor-native plugin yet, so behavior in a desktop browser tab and in the eventual Android WebView is effectively identical.</p>
+
+<h2>What's actually in Phase 1</h2>
+<ul>
+<li><strong>Home Feed</strong> (<code>src/screens/HomeFeedScreen.tsx</code>) — boots straight into a vertical swipe stack of the 3 demo creatives. No splash animation, no chrome over the game at all.</li>
+<li><strong>3 built-in playable demos</strong> (<code>public/demos/*/index.html</code>) — Skyline Dash (endless runner), Gem Cascade (match-3), Last Bastion (tower defense). Each is a self-contained HTML/CSS/canvas file with zero external dependencies, loaded live in the top feed card's sandboxed <code>&lt;iframe&gt;</code>.</li>
+<li><strong>Event tracking</strong> (<code>src/services/events/eventLogger.ts</code>) — every event from the spec's event model, kept in a local ring buffer + <code>localStorage</code>, visible on the Debug screen.</li>
+<li><strong>Client-side qualification engine</strong> (<code>src/services/qualification</code>) — Level 1–4 exactly as specified. This is a candidate signal only.</li>
+<li><strong>Fraud checker + outbound click gatekeeper</strong> (<code>src/services/fraud/*</code>) — behavior-scoring, not a single rule; daily caps; every decision logged.</li>
+<li><strong>Profile, Debug, Privacy, Terms screens</strong> — Debug is excluded from anything built with <code>VITE_APP_ENV=production</code>.</li>
+</ul>
+
+<h2>No Play button: the feed card is the game</h2>
+<p>There's no "Try"/"Play" step, no separate preview screen, and no chrome drawn over the game at all — no badge, no title, no visible button. The top card's real game is already running the moment it reaches the top of the stack (<code>src/components/FeedCard.tsx</code>); a promo placement's only visual difference is its gold/emerald frame.</p>
+<p>Both actions live on the same thin zone at the very top and bottom edge of the card, never the middle:</p>
+<ul>
+<li><strong>drag</strong> (past a small threshold) — swipe the card away (up = skip to next, down = restore the previous one);</li>
+<li><strong>tap</strong> (barely any movement) — open the game's page, through the same fraud gatekeeper as before; a block just silently no-ops.</li>
+</ul>
+<p>Restricting both to the edges is deliberate, not just styling: once a live game (a cross-origin sandboxed <code>&lt;iframe&gt;</code>) occupies the middle of the card, a pointer that moves over it stops being deliverable to the parent page at all, so a gesture has to start on an element outside the iframe to track reliably. Only the current (top) card ever mounts a live iframe.</p>
+<p><strong>Background prefetch</strong>: <code>src/services/creatives/playableCache.ts</code> — as soon as the feed list loads, every <code>kind: 'remote'</code> creative's game is fetched and cached (Cache Storage API) in the background. <code>FeedCard.tsx</code> renders straight from that cache when it's there, falling back to a live fetch whenever nothing's cached yet.</p>
+
+<h2>Promo games (prepaid sponsor placements)</h2>
+<p>A "promo" creative is a prepaid placement — a company paying to be featured at the top of the feed, rather than ordinary ad-network inventory earning per-click/engagement revenue. <strong>Never hardcoded into the app</strong> — it's exactly the same kind of <code>ad_creatives</code> doc as any other <code>kind: 'remote'</code> creative (a URL you host), rendered by the exact same feed → sandboxed-iframe pipeline. Only a <code>placement: 'promo'</code> flag distinguishes it, which:</p>
+<ul>
+<li>sorts it first in the feed (<code>src/services/feed/feedService.ts</code>),</li>
+<li>gives it a gold/emerald frame instead of the plain card border,</li>
+<li>and, server-side, makes two Cloud Functions draw down its prepaid balance in real time — a qualified engagement or a real, non-blocked outbound click — auto-pausing the campaign once spend reaches what was prepaid.</li>
+</ul>
+<p>Add or edit one via the <code>addPromoGame</code> Cloud Function (gated on an <code>admin</code> custom claim). Check what a campaign has generated and what's left of its budget with <code>firebase/scripts/promo-billing-report.mjs</code>, which also flags anything that looks wrong.</p>
+
+<h2>Featured games (curated filler, not paid, not ad-network)</h2>
+<p>A third <code>placement</code> value alongside <code>network</code>/<code>promo</code>: <code>featured</code> is the operator's own bundled/curated content, added so the feed doesn't look thin to a reviewer. It's <strong>not</strong> a promo — no prepaid balance, no rate card, no money fields at all, and the promo billing path never fires for it. Same plain framing as a <code>network</code> creative, same engagement/click tracking — nothing branches on <code>placement</code> there, so it's counted exactly like any other game, no separate calculator.</p>
+<p>The only difference is position: each featured creative lands at a random index among the <code>network</code> ones on every feed load, instead of a fixed slot.</p>
+
+<h2>Environment modes</h2>
+<div class="tablewrap">
+<table>
+<tr><th></th><th><code>local_test</code></th><th><code>staging</code></th><th><code>production</code></th></tr>
+<tr><td>Creative source</td><td>built-in local seed</td><td>Firebase</td><td>Firebase</td></tr>
+<tr><td>Firebase touched at all?</td><td>no</td><td>yes</td><td>yes</td></tr>
+<tr><td>Fraud checker</td><td>active (local sim)</td><td>active</td><td>active, server-authoritative</td></tr>
+<tr><td>Debug screen</td><td>on</td><td>on</td><td><strong>off</strong>, always</td></tr>
+<tr><td>Outbound clicks revenue-eligible?</td><td>never</td><td>never</td><td>yes, once Phase 2's server checks pass</td></tr>
+</table>
+</div>
+
+<h2>Building for Android</h2>
+<p>When you're ready to see it as an actual Android app:</p>
+<ol>
+<li>Install Android Studio (includes the Android SDK) and a JDK 17+.</li>
+<li><code>android/</code> already exists, appId <code>com.gamegemgo.myapp</code>, matching the Android app registered in Firebase project <code>gamegem-1614d</code>.</li>
+<li><code>npm run cap:sync</code> — builds the web app and copies it + native deps into <code>android/</code>.</li>
+<li><code>npm run cap:open:android</code>, or from the command line: <code>cd android &amp;&amp; ./gradlew bundleRelease</code> (Android App Bundle, what Play Console wants) or <code>assembleRelease</code> (APK, for sideloading/testing).</li>
+</ol>
+<p>A signed release build already works using <code>android/keystore.properties</code> + <code>android/app/release.keystore.jks</code> (both gitignored, generated once for this machine — back them up).</p>
+
+<h2>Where a real ad SDK plugs in later</h2>
+<p>Nothing here talks to AppLovin/AdMob/a playable-ad network yet, on purpose. The seams:</p>
+<ul>
+<li><code>src/types/creative.ts</code>'s <code>playable.kind</code> — add a third variant alongside <code>local</code>/<code>remote</code> once a partner SDK provides its own render surface.</li>
+<li><code>src/services/creatives/firebaseCreativeReader.ts</code> — a partner network's fetch would live behind the same <code>feedService.loadFeedCreatives()</code> interface.</li>
+<li><code>src/services/fraud/outboundClickGatekeeper.ts</code> — the same allow/allow_suspicious/block contract should gate any partner SDK click callback.</li>
+</ul>
+
+<h2>Also see</h2>
+<ul>
+<li><code>LAUNCH_CHECKLIST.md</code> and <code>firebase/FIREBASE_SCHEMA.md</code> in the repository for full technical detail — not hosted publicly here since they track in-progress security/launch items.</li>
+</ul>
+    </main>
+  </div>
+</body>
+</html>

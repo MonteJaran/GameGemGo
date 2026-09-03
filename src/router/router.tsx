@@ -1,13 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
 /**
- * Deliberately not react-router: this app has 7 fixed screens and no
+ * Deliberately not react-router: this app has 6 fixed screens and no
  * nested layouts, so a ~50-line hash router keeps the startup bundle
  * smaller and gives us full control over when each screen's chunk loads.
+ * (No dedicated "play" screen — the feed card itself is the live game,
+ * see FeedCardStack/FeedCard.)
  */
 export type Route =
   | { name: 'home' }
-  | { name: 'play'; creativeId: string }
   | { name: 'game'; creativeId: string }
   | { name: 'profile' }
   | { name: 'privacy' }
@@ -18,7 +19,6 @@ function parseHash(hash: string): Route {
   const path = hash.replace(/^#/, '') || '/'
   const segments = path.split('/').filter(Boolean)
   if (segments.length === 0) return { name: 'home' }
-  if (segments[0] === 'play' && segments[1]) return { name: 'play', creativeId: decodeURIComponent(segments[1]) }
   if (segments[0] === 'game' && segments[1]) return { name: 'game', creativeId: decodeURIComponent(segments[1]) }
   if (segments[0] === 'profile') return { name: 'profile' }
   if (segments[0] === 'privacy') return { name: 'privacy' }
@@ -31,8 +31,6 @@ function routeToHash(route: Route): string {
   switch (route.name) {
     case 'home':
       return '#/'
-    case 'play':
-      return `#/play/${encodeURIComponent(route.creativeId)}`
     case 'game':
       return `#/game/${encodeURIComponent(route.creativeId)}`
     case 'profile':

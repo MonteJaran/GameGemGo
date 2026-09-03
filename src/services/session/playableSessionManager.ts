@@ -3,7 +3,10 @@ import { computeLevel, hasReachedEngagedPreview, QUALIFICATION_THRESHOLDS } from
 import type { EngagementStats, QualificationLevel } from '../../types/qualification'
 import { newId } from '../../utils/id'
 
-export type ExitReason = 'user_back' | 'app_backgrounded' | 'completed' | 'unknown'
+export type ExitReason = 'user_back' | 'app_backgrounded' | 'completed' | 'card_skip' | 'card_restore' | 'unknown'
+
+/** Must match the message `type` every bundled/remote demo HTML file postMessage()s to the parent on every meaningful game input — see /public/demos/*\/index.html. Whoever is running the live iframe (FeedCardStack, one at a time) listens for this and forwards to that card's session.recordInteraction(). */
+export const INTERACTION_MESSAGE_TYPE = 'swipeplayable:interaction'
 
 export interface PlayableSession {
   sessionId: string
@@ -34,7 +37,8 @@ function detectRapidRepeat(timestamps: number[]): boolean {
  * Owns one Playable Preview session's lifecycle: active focused time
  * (paused whenever the tab/app isn't visible), interaction count, rapid-tap
  * detection, and the Level 1-4 qualification events. One instance per
- * PlayablePreviewScreen mount — see hooks/usePlayableSession.ts.
+ * feed card that reaches the top of the stack — see FeedCardStack.tsx and
+ * hooks/usePlayableSession.ts.
  */
 export function createPlayableSession(creativeId: string): PlayableSession {
   const sessionId = newId('play')

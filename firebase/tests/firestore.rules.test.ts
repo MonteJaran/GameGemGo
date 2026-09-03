@@ -41,6 +41,25 @@ describe('ad_creatives (server-only)', () => {
     const db = testEnv.authenticatedContext('user_1').firestore()
     await assertFails(db.doc('ad_creatives/demo-endless-runner').get())
   })
+
+  // Promo (prepaid sponsor) campaigns are just ad_creatives docs with extra
+  // fields (see FIREBASE_SCHEMA.md) — same collection, same rule, but this
+  // is worth pinning explicitly since those extra fields are real money
+  // (prepaidAmountCents, rateCardCents, clicksCount, engagementsCount,
+  // spentCents) and must never be client-readable or client-writable.
+  it('denies client reads/writes of a promo campaign doc, including its money fields', async () => {
+    const db = testEnv.authenticatedContext('user_1').firestore()
+    await assertFails(db.doc('ad_creatives/promo-acme-2026-09').get())
+    await assertFails(
+      db.doc('ad_creatives/promo-acme-2026-09').set({
+        placement: 'promo',
+        prepaidAmountCents: 100000,
+        rateCardCents: { perClickCents: 100, perEngagementCents: 50 },
+        clicksCount: 0,
+        engagementsCount: 0,
+      }),
+    )
+  })
 })
 
 describe('events_raw', () => {

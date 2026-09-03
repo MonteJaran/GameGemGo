@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0b0c10" />
+<meta name="description" content="GameGemGo — a swipe feed for discovering playable game previews. Real gameplay, not screenshots or trailers." />
+<title>GameGemGo</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0c10;
+    --surface: #15171c;
+    --surface-raised: #1c1f26;
+    --border: #262932;
+    --text: #f2f3f5;
+    --text-dim: #9aa0a6;
+    --text-faint: #676c76;
+    --accent: #6c7bff;
+    --gold: #f5d576;
+    --gold-deep: #b8860b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+
+  header.top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 0;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 19px; }
+  .brand__mark { width: 28px; height: 28px; flex-shrink: 0; }
+  nav.top a {
+    color: var(--text-dim); text-decoration: none; font-size: 14.5px; font-weight: 600; margin-left: 26px;
+  }
+  nav.top a:hover { color: var(--text); }
+
+  .hero { padding: 64px 0 56px; }
+  .hero__eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--gold); background: rgba(245,213,118,0.1); border: 1px solid rgba(245,213,118,0.25);
+    padding: 5px 12px; border-radius: 999px; margin-bottom: 22px;
+  }
+  h1 {
+    font-family: 'Sora', sans-serif; font-weight: 800; font-size: 46px; line-height: 1.08;
+    letter-spacing: -0.015em; margin: 0 0 20px; max-width: 15ch;
+  }
+  .hero p.lead { font-size: 19px; color: var(--text-dim); max-width: 52ch; margin: 0 0 30px; }
+  .hero .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-weight: 600; font-size: 15px; padding: 12px 20px; border-radius: 10px;
+    text-decoration: none; border: 1px solid transparent;
+  }
+  .btn--primary { background: var(--accent); color: #fff; }
+  .btn--ghost { background: var(--surface); border-color: var(--border); color: var(--text); }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 8px 0 64px; }
+  @media (max-width: 700px) { .cards { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px;
+  }
+  .card--gold { border-color: rgba(245,213,118,0.4); background: linear-gradient(160deg, rgba(245,213,118,0.06), var(--surface)); }
+  .card h3 { font-family: 'Sora', sans-serif; font-size: 16.5px; margin: 0 0 8px; }
+  .card p { font-size: 14.5px; color: var(--text-dim); margin: 0; }
+
+  footer {
+    border-top: 1px solid var(--border); padding: 28px 0 48px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--text-faint); text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="brand">
+        <svg class="brand__mark" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#12141a"/><path d="M24 8 L36 20 L30 40 L18 40 L12 20 Z" fill="#c9971f"/><path d="M24 8 L36 20 L24 24 Z" fill="#f5d576"/><path d="M24 8 L12 20 L24 24 Z" fill="#dcae5c"/><path d="M12 20 L18 40 L24 24 Z" fill="#93711f"/><path d="M36 20 L30 40 L24 24 Z" fill="#7a5a10"/></svg>
+        GameGemGo
+      </div>
+      <nav class="top">
+        <a href="/advertise/">Advertise</a>
+        <a href="/readme/">Docs</a>
+        <a href="/legal/">Legal</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <span class="hero__eyebrow">Android · in testing</span>
+      <h1>Swipe into a game. Actually play it. Swipe again.</h1>
+      <p class="lead">GameGemGo is a feed of playable game previews — real, interactive gameplay the moment a card is on screen, not a screenshot or a trailer. No "try demo" button, nothing to tap through first.</p>
+      <div class="ctas">
+        <a class="btn btn--primary" href="/legal/">Privacy &amp; Terms</a>
+        <a class="btn btn--ghost" href="/readme/">Read the docs</a>
+      </div>
+    </section>
+
+    <section class="cards">
+      <div class="card">
+        <h3>Just play</h3>
+        <p>No Play button, no loading screen. The top card's game is already live — swipe from the top or bottom edge to move on.</p>
+      </div>
+      <div class="card">
+        <h3>No personal data</h3>
+        <p>No name, email, or password, ever. Only anonymous signals used to keep the feed fair and detect fake engagement.</p>
+      </div>
+      <div class="card card--gold">
+        <h3>Promo placements</h3>
+        <p>Sponsored games pinned to the top of the feed get a gold or emerald frame — always distinguishable, never disguised as regular content. <a href="/advertise/">See sponsor pricing →</a></p>
+      </div>
+    </section>
+
+    <footer>
+      <span>GameGemGo · developed by Dejan Radoman</span>
+      <span><a href="mailto:dejanradoman00@gmail.com">dejanradoman00@gmail.com</a> · <a href="/legal/">Privacy Policy</a></span>
+    </footer>
+  </div>
+</body>
+</html>

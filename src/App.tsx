@@ -8,9 +8,6 @@ import { logEvent, resetSession } from './services/events/eventLogger'
 
 // Route-level code splitting: every screen except the home feed is a
 // separate chunk, fetched only when navigated to.
-const PlayablePreviewScreen = lazy(() =>
-  import('./screens/PlayablePreviewScreen').then((m) => ({ default: m.PlayablePreviewScreen })),
-)
 const GameDetailScreen = lazy(() => import('./screens/GameDetailScreen').then((m) => ({ default: m.GameDetailScreen })))
 const ProfileSettingsScreen = lazy(() =>
   import('./screens/ProfileSettingsScreen').then((m) => ({ default: m.ProfileSettingsScreen })),
@@ -24,8 +21,6 @@ function Screens() {
   switch (route.name) {
     case 'home':
       return <HomeFeedScreen />
-    case 'play':
-      return <PlayablePreviewScreen creativeId={route.creativeId} />
     case 'game':
       return <GameDetailScreen creativeId={route.creativeId} />
     case 'profile':

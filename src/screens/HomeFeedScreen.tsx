@@ -24,7 +24,7 @@ export function HomeFeedScreen() {
   return (
     <div className="screen">
       <header className="app-bar">
-        <h1 className="app-bar__title">SwipePlayable</h1>
+        <h1 className="app-bar__title">GameGemGo</h1>
         <button
           className="icon-button tap-target"
           aria-label="Profile and settings"

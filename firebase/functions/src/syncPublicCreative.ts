@@ -21,8 +21,12 @@ export const syncPublicCreative = onDocumentWritten('ad_creatives/{creativeId}',
 
   // Only the public-safe subset — see FIREBASE_SCHEMA.md's
   // ad_creatives_public table. Never forward partnerId, payoutTermsRef,
-  // qualityScore, or revenueFlags.
-  const { title, genre, thumbnail, badgeLabel, partnerLabel, playable, cta } = after as Record<string, unknown>
+  // qualityScore, revenueFlags, or any promo money field (prepaidAmountCents,
+  // rateCardCents, clicksCount, engagementsCount, spentCents, status) —
+  // `placement`/`promoTier`/`priority` are purely presentational (which
+  // plating to draw, what order to show in), never the sponsor's terms.
+  const { title, genre, thumbnail, badgeLabel, partnerLabel, playable, cta, placement, promoTier, priority } =
+    after as Record<string, unknown>
   await publicRef.set({
     title,
     genre,
@@ -31,6 +35,13 @@ export const syncPublicCreative = onDocumentWritten('ad_creatives/{creativeId}',
     partnerLabel: partnerLabel ?? null,
     playable,
     cta,
+    // 'featured' has to pass through as-is, not collapse to 'network' —
+    // it's what tells the client to scatter it randomly instead of
+    // leaving it in place (feedService.ts's scatterFeatured). Anything
+    // else (including absent) defaults to 'network'.
+    placement: placement === 'promo' ? 'promo' : placement === 'featured' ? 'featured' : 'network',
+    promoTier: promoTier ?? null,
+    priority: typeof priority === 'number' ? priority : null,
     publishedAt: new Date(),
   })
 })

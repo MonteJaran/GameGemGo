@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Creative } from '../types/creative'
 import { loadFeedCreatives } from '../services/feed/feedService'
+import { prefetchAll } from '../services/creatives/playableCache'
 
 export interface FeedState {
   creatives: Creative[]
@@ -32,6 +33,10 @@ export function useFeed(): FeedState {
       .then(({ creatives, source }) => {
         if (cancelled) return
         setState({ creatives, loading: false, error: null, source })
+        // Fire-and-forget, not awaited: "downloaded in the background so
+        // it's there when this app loads" — never blocks this state
+        // update or first paint. See playableCache.ts.
+        prefetchAll(creatives.map((c) => c.playable))
       })
       .catch((err: unknown) => {
         if (cancelled) return

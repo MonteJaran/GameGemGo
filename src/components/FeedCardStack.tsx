@@ -7,9 +7,13 @@ import { Button } from './Button'
 import { logEvent } from '../services/events/eventLogger'
 import { evaluateOutboundClick } from '../services/fraud/outboundClickGatekeeper'
 import { QUALIFICATION_THRESHOLDS } from '../services/qualification/qualificationEngine'
+import { usePlayableSession } from '../hooks/usePlayableSession'
+import { INTERACTION_MESSAGE_TYPE } from '../services/session/playableSessionManager'
 import { useRouter } from '../router/router'
 
 const SWIPE_COMMIT_PX = 90
+/** Below this, a gesture that started on an edge zone reads as a tap, not a drag — see onPointerUp. Standard tap-vs-drag slop (~8-10px). */
+const TAP_MAX_PX = 8
 const SETTLE_MS = 220
 
 /**
@@ -18,17 +22,25 @@ const SETTLE_MS = 220
  * pointermove — CSS transforms + no re-render per frame keeps this smooth
  * on mid-range hardware (spec: "Prefer CSS transforms and native scrolling
  * for smoothness").
+ *
+ * No chrome at all over the game: no Play button, no title/badge, no
+ * visible CTA. The top card's game is live the moment it becomes current
+ * (see FeedCard), so this component also owns that card's PlayableSession.
+ * Dragging (swipe away) or tapping (open the game page) can only start
+ * from the top/bottom edge zones FeedCard renders — never the card body —
+ * so gameplay touches over the live iframe are never stolen for either.
  */
 export function FeedCardStack({ creatives }: { creatives: Creative[] }) {
   const { navigate } = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [blockedNotice, setBlockedNotice] = useState<string | null>(null)
   const topCardEl = useRef<HTMLDivElement | null>(null)
   const drag = useRef<{ startY: number; dragging: boolean }>({ startY: 0, dragging: false })
 
   const current = creatives[currentIndex]
   const next = creatives[currentIndex + 1]
   const atEnd = !current
+
+  const session = usePlayableSession(current?.id ?? null)
 
   // Level 1 impression: the card must stay the top/visible card for >= 2s uninterrupted.
   useEffect(() => {
@@ -39,9 +51,17 @@ export function FeedCardStack({ creatives }: { creatives: Creative[] }) {
     return () => window.clearTimeout(timer)
   }, [current])
 
+  // Only one iframe (the current card's) is ever mounted, so a single
+  // window-level listener is enough to know which session it belongs to.
   useEffect(() => {
-    setBlockedNotice(null)
-  }, [currentIndex])
+    function onMessage(e: MessageEvent) {
+      const data = e.data as { type?: string } | undefined
+      if (data?.type !== INTERACTION_MESSAGE_TYPE) return
+      session?.recordInteraction()
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [session])
 
   function settle(transform: string, transition: string) {
     const el = topCardEl.current
@@ -69,7 +89,10 @@ export function FeedCardStack({ creatives }: { creatives: Creative[] }) {
     const dy = e.clientY - drag.current.startY
     drag.current.dragging = false
 
-    if (dy <= -SWIPE_COMMIT_PX) {
+    if (Math.abs(dy) < TAP_MAX_PX) {
+      settle('translateY(0px)', 'none')
+      handleOpenGamePage()
+    } else if (dy <= -SWIPE_COMMIT_PX) {
       commitSkip()
     } else if (dy >= SWIPE_COMMIT_PX && currentIndex > 0) {
       commitRestore()
@@ -82,6 +105,7 @@ export function FeedCardStack({ creatives }: { creatives: Creative[] }) {
     if (!current) return
     settle('translateY(-120%)', `transform ${SETTLE_MS}ms cubic-bezier(0.22,1,0.36,1)`)
     logEvent('card_skip', { creativeId: current.id })
+    session?.end('card_skip')
     window.setTimeout(() => {
       setCurrentIndex((i) => i + 1)
     }, SETTLE_MS)
@@ -92,26 +116,26 @@ export function FeedCardStack({ creatives }: { creatives: Creative[] }) {
     const previous = creatives[currentIndex - 1]
     settle('translateY(120%)', `transform ${SETTLE_MS}ms cubic-bezier(0.22,1,0.36,1)`)
     if (previous) logEvent('card_restore', { creativeId: previous.id })
+    session?.end('card_restore')
     window.setTimeout(() => {
       setCurrentIndex((i) => Math.max(0, i - 1))
     }, SETTLE_MS)
   }
 
-  function handleTry() {
-    if (!current) return
-    navigate({ name: 'play', creativeId: current.id })
-  }
-
+  /**
+   * Triggered by a tap (not a drag) on either edge zone — see onPointerUp.
+   * No visible button, so no visible "blocked" notice either: a block
+   * just silently no-ops (still fully logged via evaluateOutboundClick's
+   * own blocked_click event, same fraud pipeline as before).
+   */
   function handleOpenGamePage() {
     if (!current) return
-    // No open Playable session yet for this creative (direct tap from the
-    // feed card) — the gatekeeper still runs, it just can't grant
-    // revenue-eligibility without a qualified preview session.
-    const decision = evaluateOutboundClick({ creativeId: current.id })
-    if (decision.decision === 'block') {
-      setBlockedNotice("Can't open this right now — try again in a moment.")
-      return
-    }
+    const stats = session?.getStats()
+    const decision = evaluateOutboundClick(
+      stats ? { creativeId: current.id, session: { stats, openedAt: stats.openedAt } } : { creativeId: current.id },
+    )
+    if (decision.decision === 'block') return
+    session?.end('completed')
     navigate({ name: 'game', creativeId: current.id })
   }
 
@@ -140,35 +164,23 @@ export function FeedCardStack({ creatives }: { creatives: Creative[] }) {
             key={next.id}
             creative={next}
             interactive={false}
-            blockedNotice={null}
             // pointerEvents: none — this peeking card sits behind the top
             // one and must never itself receive a tap (spec: "No
             // accidental click traps"), even at its slightly-exposed edges.
             style={{ transform: 'translateY(10px) scale(0.96)', opacity: 0.7, zIndex: 1, pointerEvents: 'none' }}
-            onTry={() => {}}
-            onOpenGamePage={() => {}}
           />
         )}
         <FeedCard
           key={current.id}
           creative={current}
           interactive
-          blockedNotice={blockedNotice}
           cardRef={topCardEl}
           style={{ zIndex: 2 }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onTry={handleTry}
-          onOpenGamePage={handleOpenGamePage}
         />
       </div>
-      {currentIndex > 0 && (
-        <button className="restore-fab tap-target" onClick={commitRestore}>
-          ↺ Previous
-        </button>
-      )}
-      <p className="card-stack__hint">Swipe up to skip</p>
     </div>
   )
 }

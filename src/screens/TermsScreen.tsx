@@ -1,8 +1,11 @@
 import { useRouter } from '../router/router'
 
 /**
- * Real draft copy (not lorem-ipsum placeholder). Still flagged as a draft
- * at the bottom — get an actual legal review before any public release.
+ * Real copy (not lorem-ipsum placeholder), kept in sync with the public
+ * hosted version an app-store listing should link to. `[Your Country/State]`
+ * is the one placeholder left on purpose — only the developer knows which
+ * jurisdiction's law should govern; fill it in before relying on this
+ * section.
  */
 export function TermsScreen() {
   const { back } = useRouter()
@@ -15,11 +18,14 @@ export function TermsScreen() {
         <h1 className="screen-header__title">Terms</h1>
       </div>
       <div className="screen__scroll prose">
-        <p>By opening or using SwipePlayable, you agree to these terms.</p>
+        <p>
+          GameGemGo is developed and operated by Dejan Radoman ("we", "us"). By opening or using
+          GameGemGo, you agree to these terms.
+        </p>
 
         <h2>What this app is</h2>
         <p>
-          SwipePlayable is a general-audience (teen and up) app for discovering playable game ad
+          GameGemGo is a general-audience (teen and up) app for discovering playable game ad
           previews. Test builds ship with local demo playables only and no real ad inventory; when
           you see "Internal Demo" on a card, that content isn't from a real advertising partner and
           any "Open Game Page" link goes to an in-app placeholder, not a real store listing.
@@ -60,6 +66,14 @@ export function TermsScreen() {
           consequential damages arising from your use of the app.
         </p>
 
+        <h2>Governing law</h2>
+        <p>
+          These terms are governed by the laws of{' '}
+          <span style={{ fontFamily: 'monospace' }}>[Your Country/State]</span>, without regard to
+          its conflict-of-law rules, except where local consumer-protection law in your own country
+          gives you rights these terms can't override.
+        </p>
+
         <h2>Changes</h2>
         <p>
           We may update these terms as the app evolves (e.g. moving from test to production
@@ -68,13 +82,15 @@ export function TermsScreen() {
 
         <h2>Contact</h2>
         <p>
-          Questions? Reach us at <span style={{ fontFamily: 'monospace' }}>legal@example.com</span>{' '}
-          (placeholder — set a real contact address before public release).
+          Questions? Reach us at{' '}
+          <a href="mailto:dejanradoman00@gmail.com" style={{ fontFamily: 'monospace' }}>
+            dejanradoman00@gmail.com
+          </a>
+          .
         </p>
 
         <p style={{ color: 'var(--color-text-faint)', fontSize: 12, marginTop: 32 }}>
-          Draft — last reviewed for accuracy against the current build, not yet reviewed by
-          counsel. Replace this line once that review happens.
+          Last updated September 2026.
         </p>
       </div>
     </div>

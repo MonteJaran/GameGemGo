@@ -24,9 +24,9 @@ in the order you'd tackle what's left.
       `evaluateOutboundClickServer`, authoritative once it resolves).
       All still fall back cleanly to local_test behavior if Firebase is
       unreachable.
-- [x] `firestore.rules` re-run against the emulator — **9/9 tests pass**
-      (`firebase/tests/firestore.rules.test.ts`), including the new
-      `counters`/`rate_limits` collections.
+- [x] `firestore.rules` re-run against the emulator — **10/10 tests pass**
+      (`firebase/tests/firestore.rules.test.ts`), including the
+      `counters`/`rate_limits` collections and promo campaign money fields.
 - [ ] **Firebase App Check** — not done. Without it, anyone can call
       `logRawEvent` / `evaluateOutboundClickServer` directly (curl, not
       your APK) and feed fake events. This needs your action first: enable
@@ -34,12 +34,24 @@ in the order you'd tackle what's left.
       Firebase Console, then wire the corresponding client SDK
       (`@capacitor-firebase/app-check` or similar — the plain web JS SDK's
       reCAPTCHA providers are the wrong fit for a native WebView app).
-      Still the single highest-leverage thing left here.
+      Still the single highest-leverage thing left here. This also covers
+      `addPromoGame` (§7) — it's already gated on the `admin` custom claim,
+      but App Check is still the thing stopping a non-app caller from even
+      reaching `logRawEvent`/`evaluateOutboundClickServer` to fake the
+      clicks/engagements a promo campaign gets billed against.
 - [ ] Hashed-IP soft cap — needs a source of IP in the Cloud Function
       request context (works once deployed; not testable purely locally).
 
 ## 2. Ad partner integration
 
+- [x] Fixed a real gap found this session: `GameDetailScreen` (the "Open
+      Game Page" CTA target) used to only ever look a creative up in the
+      3 local_test demos — any Firebase-sourced creative's CTA silently
+      dead-ended on a false "not found" screen instead of opening
+      anything. It now falls back to the last-fetched feed
+      (`feedService.getLastFetchedCreativeById`) and actually redirects
+      for `cta.kind: 'external'` (`window.open`) instead of always
+      showing the TEST-mode placeholder.
 - [ ] Pick and sign with an actual source of playable inventory — business
       step, not a code one.
 - [ ] Confirm their playable spec works inside our sandboxed
@@ -105,6 +117,16 @@ in the order you'd tackle what's left.
 - [x] Bare-bones kill switch: `firebase/scripts/set-production-flag.mjs`
       (needs a service account key you generate yourself in Firebase
       Console — never share that key with anyone, including here).
+- [x] Promo (prepaid sponsor) games: `addPromoGame` Cloud Function to
+      add/edit them, real-time server-side spend tracking against each
+      campaign's prepaid balance (auto-pauses the campaign once spent),
+      and `firebase/scripts/promo-billing-report.mjs` — a read-only report
+      of clicks/engagements/spend/remaining per campaign plus irregularity
+      flags (overspend, drift, correlated fraud_flags). Written and
+      type-checked, same not-yet-deployed status as the rest of Phase 2.
+      One-time setup needed before `addPromoGame` will accept calls: run
+      `firebase/scripts/set-admin-claim.mjs` for whichever account will be
+      adding promo games. See `firebase/FIREBASE_SCHEMA.md`'s promo section.
 - [ ] Real dashboard/scheduled query over `qualified_events`/`fraud_flags`.
 - [ ] Alerting on Cloud Function error rate / fraud-flag spikes.
 

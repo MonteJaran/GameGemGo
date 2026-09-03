@@ -1,4 +1,4 @@
-package com.gamegemgo;
+package com.gamegemgo.myapp;
 
 import com.getcapacitor.BridgeActivity;
 

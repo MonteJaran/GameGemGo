@@ -32,29 +32,6 @@
   transform: scale(0.94);
 }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  background: rgba(108, 123, 255, 0.16);
-  color: #b9c0ff;
-  width: fit-content;
-}
-
-.badge--dot::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: currentColor;
-}
-
 .btn {
   appearance: none;
   border: none;
@@ -173,135 +150,78 @@
   height: 100%;
 }
 
+/*
+ * The card is a plain positioning shell — art (live game or thumbnail)
+ * fills it edge to edge, with only the swipe zones overlaid on top via
+ * position: absolute. No badge, title, or button ever renders over the
+ * game — the gold/emerald plating below is the only chrome a card gets.
+ */
 .feed-card {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  touch-action: pan-y;
   will-change: transform;
   transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
 }
 
 .feed-card__art {
-  flex: 1;
-  min-height: 0;
-}
-
-.feed-card__body {
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
-.feed-card__title {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.feed-card__meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: 13px;
-  color: var(--color-text-dim);
-  text-transform: capitalize;
-}
-
-.feed-card__actions {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-1);
-}
-
-.feed-card__partner {
-  font-size: 11px;
-  color: var(--color-text-faint);
-}
-
-.card-stack__hint {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--space-4) + 4px);
-  text-align: center;
-  font-size: 12px;
-  color: var(--color-text-faint);
-  pointer-events: none;
+  inset: 0;
 }
 
-.restore-fab {
-  position: absolute;
-  top: var(--space-2);
-  right: calc(var(--space-4) + 4px);
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-dim);
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 13px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-/* --- Playable preview --- */
-
-.preview-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.preview-header__title {
-  font-size: 15px;
-  font-weight: 600;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.preview-stage {
-  flex: 1;
-  min-height: 0;
-  position: relative;
-  background: #000;
-}
-
-.preview-stage iframe {
+.feed-card__frame {
   width: 100%;
   height: 100%;
   border: 0;
   display: block;
+  background: #000;
 }
 
-.preview-footer {
-  padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  flex-shrink: 0;
+/*
+ * Real DOM elements a drag can start from, not just a Y-coordinate check —
+ * see FeedCard.tsx's doc comment for why: a cross-origin sandboxed iframe
+ * swallows pointermove once the pointer is over it, so capture has to
+ * start outside it. touch-action: none so the browser never intercepts
+ * the drag for its own scroll/pan gesture. Deliberately no background —
+ * these are invisible "grab handles", not visual chrome.
+ */
+.feed-card__swipe-zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  touch-action: none;
 }
 
-.preview-progress {
-  font-size: 12px;
-  color: var(--color-text-dim);
-  display: flex;
-  justify-content: space-between;
+.feed-card__swipe-zone--top {
+  top: 0;
+  height: 64px;
+}
+
+.feed-card__swipe-zone--bottom {
+  bottom: 0;
+  height: 72px;
+}
+
+/* --- Promo (prepaid sponsor) plating --- */
+
+.feed-card--promo-gold {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    linear-gradient(135deg, #f5d576, #b8860b, #f5d576) border-box;
+  box-shadow: 0 0 0 1px rgba(245, 213, 118, 0.35), 0 8px 28px rgba(184, 134, 11, 0.25);
+}
+
+.feed-card--promo-emerald {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    linear-gradient(135deg, #6ee7b7, #047857, #6ee7b7) border-box;
+  box-shadow: 0 0 0 1px rgba(110, 231, 183, 0.35), 0 8px 28px rgba(4, 120, 87, 0.25);
 }
 
 /* --- Lists (profile / debug) --- */

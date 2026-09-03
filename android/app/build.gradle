@@ -14,10 +14,10 @@ if (hasReleaseSigning) {
 }
 
 android {
-    namespace = "com.gamegemgo"
+    namespace = "com.gamegemgo.myapp"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.gamegemgo"
+        applicationId "com.gamegemgo.myapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

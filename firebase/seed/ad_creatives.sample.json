@@ -1,5 +1,5 @@
 {
-  "_comment": "Example of a full server-only ad_creatives/{id} doc. Import into the emulator or a real project with `firebase firestore:seed` style tooling of your choice — not wired up automatically. syncPublicCreative (functions) projects the public subset into ad_creatives_public from this shape.",
+  "_comment": "Example full server-only ad_creatives/{id} docs — one ordinary network creative, one promo (prepaid sponsor) creative. Import into the emulator or a real project with `firebase firestore:seed` style tooling of your choice — not wired up automatically. syncPublicCreative (functions) projects the public subset into ad_creatives_public from either shape. In practice, prefer creating/editing the promo one through the addPromoGame callable (functions/src/promoAdmin.ts) rather than writing this shape by hand — it fills in clicksCount/engagementsCount/spentCents/status/active correctly.",
   "demo-endless-runner": {
     "title": "Skyline Dash",
     "genre": "runner",
@@ -8,10 +8,51 @@
     "partnerLabel": "Acme Games",
     "playable": { "kind": "remote", "entry": "https://cdn.example.com/playables/skyline-dash/index.html" },
     "cta": { "kind": "external", "value": "https://play.google.com/store/apps/details?id=com.example.skylinedash" },
+    "placement": "network",
     "active": true,
     "partnerId": "partner_acme",
     "payoutTermsRef": "partner_sensitive/partner_acme",
     "qualityScore": 0.82,
     "revenueFlags": { "eligible": true, "cpiTier": "standard" }
+  },
+  "promo-acme-2026-09": {
+    "_comment": "A prepaid, manually configured placement — see FIREBASE_SCHEMA.md's 'Promo (prepaid sponsor) fields' section. €500.00 prepaid at €1.00/click + €0.50/engagement; pinned first in the feed (priority) with a gold frame. playable.entry is a URL you host — never a file bundled into the app.",
+    "title": "Acme Adventure: Featured Launch",
+    "genre": "strategy",
+    "thumbnail": { "kind": "placeholder-gradient", "from": "#f5d576", "to": "#b8860b", "glyph": "👑" },
+    "badgeLabel": "Playable Preview",
+    "partnerLabel": "Acme Games",
+    "playable": { "kind": "remote", "entry": "https://cdn.example.com/playables/acme-adventure/index.html" },
+    "cta": { "kind": "external", "value": "https://play.google.com/store/apps/details?id=com.example.acmeadventure" },
+    "placement": "promo",
+    "promoTier": "gold",
+    "priority": 10,
+    "prepaidAmountCents": 50000,
+    "rateCardCents": { "perClickCents": 100, "perEngagementCents": 50 },
+    "clicksCount": 0,
+    "engagementsCount": 0,
+    "spentCents": 0,
+    "status": "active",
+    "active": true,
+    "partnerId": null,
+    "payoutTermsRef": null,
+    "qualityScore": null,
+    "revenueFlags": null
+  },
+  "featured-fortress-siege": {
+    "_comment": "The operator's own curated/bundled filler content — see FIREBASE_SCHEMA.md's placement row. No money fields (no prepaidAmountCents/rateCardCents/clicksCount/etc — those only exist on a promo doc), never billed by anything in promoSpendGuard.ts. Tracked identically to a network creative; the client scatters it to a random feed position on every load instead of pinning it.",
+    "title": "Fortress Siege",
+    "genre": "strategy",
+    "thumbnail": { "kind": "placeholder-gradient", "from": "#9d5cff", "to": "#5c7aff", "glyph": "🛡️" },
+    "badgeLabel": "Playable Preview",
+    "partnerLabel": "GameGem Pick",
+    "playable": { "kind": "remote", "entry": "https://cdn.example.com/playables/fortress-siege/index.html" },
+    "cta": { "kind": "external", "value": "https://gamegemgo.example.com/games/fortress-siege" },
+    "placement": "featured",
+    "active": true,
+    "partnerId": null,
+    "payoutTermsRef": null,
+    "qualityScore": null,
+    "revenueFlags": null
   }
 }

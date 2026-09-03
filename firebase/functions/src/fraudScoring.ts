@@ -2,6 +2,7 @@ import './admin.js'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { computeSessionStats } from './sessionStats.js'
+import { bumpPromoCounter } from './promoSpendGuard.js'
 
 // Mirrors src/services/fraud/fraudChecker.ts's FRAUD_LIMITS — keep in sync by hand.
 export const FRAUD_LIMITS = {
@@ -144,6 +145,14 @@ export const evaluateOutboundClickServer = onCall(async (request) => {
       decision,
       createdAt: FieldValue.serverTimestamp(),
     })
+  }
+
+  // Promo (prepaid sponsor) billing: only a click that survives fraud
+  // scoring draws down a campaign's prepaid balance — a blocked click
+  // never reaches here, so bad traffic can't drain a sponsor's budget.
+  // No-ops instantly for a non-promo creative (see bumpPromoCounter).
+  if (decision !== 'block') {
+    await bumpPromoCounter(creativeId, 'clicksCount')
   }
 
   return {

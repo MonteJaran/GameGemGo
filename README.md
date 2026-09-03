@@ -154,6 +154,14 @@ swap `playable.entry` for a genuinely distinct game whenever one's ready.
   fill in) or ask about a promo placement (contact instead of a public
   price list). Mirrors `firebase/public/advertise/index.html` on the public
   site — keep both in sync by hand, the webpage can't import the screen's JSX.
+- **Finding games to feature**: `docs/outreach/` — a researched list of
+  ~105 small HTML5 game developers (`DEVELOPER_LEADS.md`, heavily weighted
+  toward js13kGames entrants, whose 13KB single-file entries already sit
+  two orders of magnitude inside the 2MB submission target) and the
+  outreach email that goes with it (`OUTREACH_EMAIL.md`). The email doc
+  leads with why the "2,000 impressions / 500 unique viewers" offer has to
+  be worded as a standing commitment rather than a reach claim while DAU
+  is still zero.
 - **Hosting playables cheaply at scale**: `firebase/HOSTING.md` — Cloudflare
   R2 setup (zero egress cost, unlike Firebase Storage/S3/GCS which bill per
   GB downloaded) and the upload workflow. `playable.entry` is just a URL,

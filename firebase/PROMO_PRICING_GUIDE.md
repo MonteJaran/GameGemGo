@@ -56,6 +56,55 @@ node firebase/scripts/promo-pricing-calculator.mjs --budget=500
 node firebase/scripts/promo-pricing-calculator.mjs --budget=1000 --cpc=1.30 --cpe=0.25 --ratio=5
 ```
 
+### Reading it from the other end: `--target`
+
+The same equation answers the supply-side question — "I want €X/day, how
+many DAU is that?" — but only once you model where billable events come
+from, because DAU isn't what bills. A user sees N games a day; only the
+paid ones can bill; only some of those clear Level 3; only a fraction of
+those click out; and the server drops what its own requalification and
+fraud scoring reject (`qualifyEvents.ts`, `fraudScoring.ts`).
+
+```bash
+node firebase/scripts/promo-pricing-calculator.mjs --target=50
+node firebase/scripts/promo-pricing-calculator.mjs --target=300 --games=20 --fill=0.4 --eng-rate=0.3 --ctr=0.05
+```
+
+Funnel defaults, and why: `--games=20` (games shown per user per day —
+roughly one 5-minute session on a swipe feed), `--fill=0.40` (share of the
+feed that's paid promo inventory rather than unmonetized filler),
+`--eng-rate=0.30` (share of paid cards clearing Level 3 — most cards get
+swiped away before 10s), `--ctr=0.05` (outbound clicks per engaged
+session), `--reject=0.12` (billable events the server drops). **None of
+these are measured — they're placeholders until real traffic exists.**
+Re-run with your own once the Debug screen's event log has something in
+it; the fill × engagement-rate table the script prints shows what moving
+each is worth, and both are cheaper to move than buying more DAU.
+
+The script also prints the funnel's implied engagements-per-click
+(`1/ctr`), which is the `--ratio` budget mode wants — feeding it back
+keeps the two modes telling the same story.
+
+## Is this rate card renewable?
+
+The rate card doesn't decide what a sponsor will pay — the traffic's worth
+to them does, and that ceiling is `clicks × click→install rate × CPI`.
+Charging far above it works exactly once: the prepaid balance drains on
+schedule, the installs don't appear, and the campaign doesn't renew. The
+`--target` mode prints this check; **~1–3× is the normal band** for
+measurable performance inventory, and above 3× it prints what the same
+card scaled to ~2× would read.
+
+This matters more than it looks, because the guide's own €0.30/engagement
+anchor was derived per-event (from CPC), with no view on event *volume*. A
+swipe feed showing 20 games a day doesn't make engagements scarce — at the
+default funnel it produces ~2.1 billable engagements per user per day, so
+€0.30/engagement bills a sponsor ~€0.76 per user per day against roughly
+€0.05 of install value. That's ~14×: a great-looking ARPDAU that no
+sponsor renews. Once volume is in the picture, **€0.02–0.05/engagement and
+€0.35–0.70/click** is the band that survives renewal — the seed doc's
+€1.00/€0.50 is a placeholder, not a target.
+
 ### Worked examples (mid-range rates: €1.15/click, €0.30/engagement, 4:1 ratio)
 
 | Prepaid budget | Projected clicks | Projected engagements |
